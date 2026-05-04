@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
             };
         }
         const room = rooms[roomCode];
-        const player = { id: socket.id, nickname, hand: [], isHost: room.players.length === 0 };
+        const player = { id: socket.id, nickname, hand: [], lastDiscarded: null, isHost: room.players.length === 0 };
         room.players.push(player);
         socket.join(roomCode);
         io.to(roomCode).emit('roomUpdate', room);
@@ -78,6 +78,7 @@ io.on('connection', (socket) => {
                 const temp = player.hand[handCardIndex];
                 player.hand[handCardIndex] = room.sharedCards[sharedCardIndex];
                 room.sharedCards[sharedCardIndex] = temp;
+                player.lastDiscarded = temp; // Track the card put down
                 room.turnIndex = (room.turnIndex + 1) % room.players.length;
                 io.to(roomCode).emit('roomUpdate', room);
             }

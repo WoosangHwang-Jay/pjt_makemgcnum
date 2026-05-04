@@ -195,7 +195,43 @@
 
         .preview.valid { color: var(--yellow); }
 
-        /* Modal */
+        /* Opponents Area */
+        #opponents {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .opponent-card {
+            background: var(--card-bg);
+            border: 1px solid var(--gray);
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .opponent-card.active {
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .discarded-label {
+            font-size: 0.7rem;
+            color: var(--gray);
+        }
+
+        .small-card {
+            width: 40px;
+            height: 56px;
+            font-size: 1rem;
+            border-color: var(--magenta);
+        }
         #modal {
             display: none;
             position: fixed;
@@ -234,6 +270,8 @@
             <div id="turn-display" class="turn-info">WAITING FOR PLAYERS...</div>
             <button id="start-btn" style="display:none;" onclick="startGame()">START GAME</button>
         </div>
+
+        <div id="opponents"></div>
 
         <div class="label">SHARED CARDS</div>
         <div id="shared-cards" class="card-area"></div>
@@ -338,13 +376,28 @@
                 document.getElementById('start-btn').style.display = 'none';
             }
 
-            // Turn Display
-            if (room.status === 'waiting') {
-                document.getElementById('turn-display').innerText = 'WAITING FOR HOST...';
-            } else {
-                const turnPlayer = room.players[room.turnIndex];
-                document.getElementById('turn-display').innerText = isMyTurn ? "YOUR TURN!" : `${turnPlayer.nickname}'S TURN`;
-            }
+            // Opponents
+            const opponentsDiv = document.getElementById('opponents');
+            opponentsDiv.innerHTML = '';
+            room.players.forEach((p, idx) => {
+                if (p.id === socket.id) return;
+                const isHisTurn = room.turnIndex === idx;
+                const opCard = document.createElement('div');
+                opCard.className = `opponent-card ${isHisTurn ? 'active' : ''}`;
+                opCard.innerHTML = `
+                    <div style="font-weight:700;">${p.nickname}</div>
+                    <div style="color:var(--cyan);">Cards: ${p.hand.length}</div>
+                    <div class="discarded-label">LAST PUT DOWN</div>
+                    <div id="discarded-${p.id}"></div>
+                `;
+                opponentsDiv.appendChild(opCard);
+                
+                if (p.lastDiscarded !== null) {
+                    const disc = createCard(p.lastDiscarded, false);
+                    disc.classList.add('small-card');
+                    document.getElementById(`discarded-${p.id}`).appendChild(disc);
+                }
+            });
 
             // Shared Cards
             const sharedDiv = document.getElementById('shared-cards');
