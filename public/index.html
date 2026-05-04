@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make 10 - Modern & Tech Board Game</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0f1e;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --cyan: #00f2ff;
+            --magenta: #ff00e6;
+            --yellow: #e2ff00;
+            --white: #ffffff;
+            --gray: #4a4e69;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--white);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Lobby Styles */
+        #lobby {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            gap: 20px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--cyan);
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .logo span {
+            color: var(--magenta);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 300px;
+        }
+
+        input {
+            background: var(--card-bg);
+            border: 1px solid var(--gray);
+            padding: 15px;
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 1.1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--cyan);
+        }
+
+        button {
+            padding: 15px;
+            border-radius: 8px;
+            border: none;
+            background: var(--cyan);
+            color: var(--bg-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--cyan);
+        }
+
+        /* Game Board Styles */
+        #game-board {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray);
+        }
+
+        .room-code {
+            color: var(--yellow);
+            font-weight: 700;
+        }
+
+        .turn-info {
+            font-size: 1.5rem;
+            color: var(--cyan);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Card Section */
+        .card-area {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            perspective: 1000px;
+        }
+
+        .card {
+            width: 100px;
+            height: 140px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            user-select: none;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) rotateY(10deg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card.number { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+        .card.shared { border-color: var(--yellow); }
+        .card.selected { border-color: var(--magenta); box-shadow: 0 0 15px var(--magenta); }
+
+        .card .index {
+            position: absolute;
+            font-size: 0.8rem;
+            font-weight: 400;
+        }
+        .card .tl { top: 8px; left: 8px; }
+        .card .br { bottom: 8px; right: 8px; transform: rotate(180deg); }
+
+        /* Formula Input Area */
+        .formula-section {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--gray);
+        }
+
+        .preview {
+            font-size: 1.2rem;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        .preview.valid { color: var(--yellow); }
+
+        /* Modal */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid var(--cyan);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Lobby Section -->
+    <div id="lobby">
+        <div class="logo">MAKE <span>10</span></div>
+        <div class="input-group">
+            <input type="text" id="nickname" placeholder="Nickname">
+            <input type="text" id="roomCode" placeholder="Room Code (6 digits)">
+            <button onclick="joinRoom()">JOIN / CREATE ROOM</button>
+        </div>
+    </div>
+
+    <!-- Game Board Section -->
+    <div id="game-board">
+        <div class="header">
+            <div>ROOM: <span id="display-room-code" class="room-code">-</span></div>
+            <div id="turn-display" class="turn-info">WAITING FOR PLAYERS...</div>
+            <button id="start-btn" style="display:none;" onclick="startGame()">START GAME</button>
+        </div>
+
+        <div class="label">SHARED CARDS</div>
+        <div id="shared-cards" class="card-area"></div>
+
+        <div class="label">MY HAND</div>
+        <div id="my-hand" class="card-area"></div>
+
+        <div class="formula-section">
+            <div id="preview" class="preview">Enter formula using your cards...</div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="formula-input" style="flex:1;" placeholder="e.g. (√9 + 2) * 2">
+                <button onclick="submitFormula()">MAKE 10!</button>
+                <button onclick="drawCard()" id="draw-btn" style="background:var(--yellow); color:black;">DRAW</button>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--gray); text-align: center;">
+                Special: √ (Prefix), ² (Postfix), ! (Postfix)
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="modal">
+        <div class="modal-content">
+            <h1 id="winner-text">WINNER!</h1>
+            <p id="winner-formula"></p>
+            <button onclick="location.reload()">BACK TO LOBBY</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let myId = null;
+        let currentRoom = null;
+        let selectedHandIdx = -1;
+        let selectedSharedIdx = -1;
+
+        function joinRoom() {
+            const nickname = document.getElementById('nickname').value;
+            const roomCode = document.getElementById('roomCode').value;
+            if (!nickname || !roomCode) return alert('Enter nickname and room code');
+            
+            currentRoom = roomCode;
+            socket.emit('joinRoom', { roomCode, nickname });
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('game-board').style.display = 'flex';
+            document.getElementById('display-room-code').innerText = roomCode;
+        }
+
+        function startGame() {
+            socket.emit('startGame', currentRoom);
+        }
+
+        function drawCard() {
+            socket.emit('drawCard', currentRoom);
+        }
+
+        function swapCard() {
+            if (selectedHandIdx !== -1 && selectedSharedIdx !== -1) {
+                socket.emit('swapCard', { 
+                    roomCode: currentRoom, 
+                    handCardIndex: selectedHandIdx, 
+                    sharedCardIndex: selectedSharedIdx 
+                });
+                selectedHandIdx = -1;
+                selectedSharedIdx = -1;
+            }
+        }
+
+        function submitFormula() {
+            const formula = document.getElementById('formula-input').value;
+            socket.emit('submitFormula', { roomCode: currentRoom, formula });
+        }
+
+        socket.on('roomUpdate', (room) => {
+            updateUI(room);
+        });
+
+        socket.on('gameStarted', (room) => {
+            updateUI(room);
+        });
+
+        socket.on('gameOver', ({ winner, formula }) => {
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('winner-text').innerText = `${winner} MADE 10!`;
+            document.getElementById('winner-formula').innerText = formula;
+        });
+
+        socket.on('error', (msg) => {
+            alert(msg);
+        });
+
+        socket.on('connect', () => { myId = socket.id; });
+
+        function updateUI(room) {
+            const me = room.players.find(p => p.id === socket.id);
+            const isMyTurn = room.players[room.turnIndex]?.id === socket.id;
+
+            // Start Button
+            if (me.isHost && room.status === 'waiting' && room.players.length >= 1) {
+                document.getElementById('start-btn').style.display = 'block';
+            } else {
+                document.getElementById('start-btn').style.display = 'none';
+            }
+
+            // Turn Display
+            if (room.status === 'waiting') {
+                document.getElementById('turn-display').innerText = 'WAITING FOR HOST...';
+            } else {
+                const turnPlayer = room.players[room.turnIndex];
+                document.getElementById('turn-display').innerText = isMyTurn ? "YOUR TURN!" : `${turnPlayer.nickname}'S TURN`;
+            }
+
+            // Shared Cards
+            const sharedDiv = document.getElementById('shared-cards');
+            sharedDiv.innerHTML = '';
+            room.sharedCards.forEach((num, idx) => {
+                const card = createCard(num, true);
+                card.onclick = () => {
+                    selectedSharedIdx = idx;
+                    renderSelection();
+                    swapCard();
+                };
+                card.id = `shared-${idx}`;
+                sharedDiv.appendChild(card);
+            });
+
+            // My Hand
+            const handDiv = document.getElementById('my-hand');
+            handDiv.innerHTML = '';
+            if (me.hand) {
+                me.hand.forEach((num, idx) => {
+                    const card = createCard(num, false);
+                    card.onclick = () => {
+                        selectedHandIdx = idx;
+                        renderSelection();
+                        swapCard();
+                    };
+                    card.id = `hand-${idx}`;
+                    handDiv.appendChild(card);
+                });
+            }
+        }
+
+        function createCard(num, isShared) {
+            const card = document.createElement('div');
+            card.className = `card number ${isShared ? 'shared' : ''}`;
+            card.innerHTML = `
+                <div class="index tl">${num}</div>
+                ${num}
+                <div class="index br">${num}</div>
+            `;
+            return card;
+        }
+
+        function renderSelection() {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            if (selectedHandIdx !== -1) document.getElementById(`hand-${selectedHandIdx}`)?.classList.add('selected');
+            if (selectedSharedIdx !== -1) document.getElementById(`shared-${selectedSharedIdx}`)?.classList.add('selected');
+        }
+
+        // Real-time Preview (Mock calculation logic for preview)
+        document.getElementById('formula-input').addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (!val) {
+                document.getElementById('preview').innerText = 'Enter formula using your cards...';
+                return;
+            }
+            // In a real app, we'd use the same parser logic on client or a simplified version
+            document.getElementById('preview').innerText = `Current Input: ${val}`;
+        });
+    </script>
+</body>
+</html>
