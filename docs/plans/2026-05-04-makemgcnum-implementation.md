@@ -18,7 +18,7 @@
 **Step 1: Create package.json with dependencies**
 ```json
 {
-  "name": "pjt-make10",
+  "name": "pjt-makemgcnum",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
@@ -95,23 +95,22 @@ git commit -m "feat: implement server-side game logic and room management"
 ---
 
 ### Task 4: Frontend "Modern & Tech" UI
+[COMPLETED]
+
+### Task 5: Opponent Info & Last Discarded Visibility
 **Files:**
-- Create: `public/index.html` (including CSS and Client JS)
+- Modify: `server.js`
+- Modify: `public/index.html`
 
-**Step 1: Implement CSS for Dark Mode & Tech theme**
-- Use Deep Navy/Charcoal background.
-- Apply Glowing effects for numbers and special operators.
-- Implement Glassmorphism for cards.
+**Step 1: Update server to track last discarded card**
+- In `swapCard` event, save the discarded card value to `player.lastDiscarded`.
 
-**Step 2: Implement Client-side Socket logic**
-- Update UI based on `gameStateUpdate`.
-- Handle formula input with real-time preview.
+**Step 2: Update UI to show Other Players**
+- Create a container for other players' status.
+- Show their nickname, hand count, and the `lastDiscarded` card with a special tech-style border.
 
-**Step 3: Manual Verification**
-- Open browser, join multiple tabs, play a test round.
-
-**Step 4: Commit**
+**Step 3: Commit**
 ```bash
-git add public/index.html
-git commit -m "feat: implement responsive modern & tech UI with real-time sync"
+git add server.js public/index.html
+git commit -m "feat: add opponent info area and last discarded card visibility"
 ```

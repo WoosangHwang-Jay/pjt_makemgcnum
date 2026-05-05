@@ -1,4 +1,4 @@
-# 2026-05-04-make10-design
+# 2026-05-04-makemgcnum-design
 
 ## 1. Project Overview
 - **Name**: Make 10 (Online Board Game)

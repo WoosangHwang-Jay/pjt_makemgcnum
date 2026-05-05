@@ -83,11 +83,11 @@ function evaluatePostfix(postfix) {
                 stack.push(Math.sqrt(a));
             } else if (token.value === '²') {
                 const a = stack.pop();
-                if (![0, 1, 2, 3].includes(a)) throw new Error('Invalid input for ²');
+                if (a < 0 || a > 9) throw new Error(`${a}²은(는) 계산할 수 없어요. 1~9 숫자만 제곱할 수 있습니다.`);
                 stack.push(Math.pow(a, 2));
             } else if (token.value === '!') {
                 const a = stack.pop();
-                if (![0, 1, 2, 3].includes(a)) throw new Error('Invalid input for !');
+                if (a < 0 || a > 7) throw new Error(`${a}!은(는) 계산할 수 없어요. 0~7 숫자만 팩토리얼할 수 있습니다.`);
                 stack.push(factorial(a));
             } else {
                 const b = stack.pop();
