@@ -144,9 +144,9 @@
         .player-node.active .avatar { border-color: var(--warning); transform: scale(1.15); box-shadow: 0 0 25px var(--warning); }
         .name-tag { background: rgba(0,0,0,0.6); color: white; padding: 2px 10px; border-radius: 10px; font-size: 0.9rem; white-space: nowrap; }
         .player-node.me { position: static; transform: none; margin-right: 20px; }
-        .player-node.op1 { top: -90px; left: 50%; transform: translateX(-50%); }
-        .player-node.op2 { left: -90px; top: 50%; transform: translateY(-50%); }
-        .player-node.op3 { right: -90px; top: 50%; transform: translateY(-50%); }
+        .player-node.op1 { top: 20px; left: 20px; }
+        .player-node.op2 { top: 20px; right: 20px; }
+        .player-node.op3 { bottom: 20px; left: 20px; }
 
         /* Avatar Box in Lobby */
         .avatar-choice {
@@ -203,7 +203,18 @@
         }
         .card:hover { transform: translateY(-8px) rotate(3deg); box-shadow: 6px 12px 20px rgba(0,0,0,0.4); z-index: 50; }
         .card.selected { border-color: var(--warning); border-width: 6px; transform: scale(1.15); z-index: 100; box-shadow: 0 0 30px var(--warning); }
-        .card.in-formula { opacity: 0.3; filter: grayscale(1); }
+        .card.in-formula { 
+            opacity: 0.6; filter: grayscale(1); position: relative;
+            background: rgba(0,0,0,0.4); border: 2px dashed rgba(255,255,255,0.3);
+            color: transparent; box-shadow: inset 0 5px 15px rgba(0,0,0,0.6);
+            transform: scale(0.95);
+        }
+        .card.in-formula::after {
+            content: "사용 중"; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: bold;
+            pointer-events: none;
+        }
 
         /* Number Card Style */
         .card.num { background-color: var(--card-num); }
@@ -230,20 +241,23 @@
         /* Game Board Layout */
         #game-board { display: none; position: relative; width: 100vw; height: 100vh; flex-direction: column; align-items: center; justify-content: center; }
         .hands-area { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
             background: rgba(62, 39, 35, 0.95); padding: 10px 25px; border-radius: 40px; 
             border: 5px solid var(--wood-medium); box-shadow: 0 10px 40px rgba(0,0,0,0.6);
             display: flex; flex-direction: row; align-items: center; gap: 20px; z-index: 200;
         }
         .main-board { 
-            position: relative; width: 920px; height: 460px; 
-            background: #5d4037; border: 12px solid #3e2723; border-radius: 50px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
+            position: relative; width: 920px; height: 350px; 
+            border: 15px solid #29180f; border-radius: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 120px rgba(0,0,0,0.7), inset 0 2px 10px rgba(255,255,255,0.1);
             display: flex; flex-direction: column; padding: 20px; gap: 10px;
-            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.2) 100%),
+                url('wood_table.png');
+            background-size: 100% 100%, cover;
+            background-position: center, center;
         }
         .board-zone { background: rgba(253, 245, 230, 0.06); border: 3px dashed rgba(255, 255, 255, 0.15); border-radius: 30px; padding: 15px; position: relative; }
-        .board-zone::after { content: attr(data-title); position: absolute; top: -12px; left: 25px; background: var(--wood-dark); color: var(--parchment); padding: 2px 15px; border-radius: 10px; font-size: 0.9rem; }
+        .board-zone::after { content: attr(data-title); position: absolute; top: -16px; left: 25px; background: var(--wood-dark); color: var(--parchment); padding: 4px 20px; border-radius: 12px; font-size: 1.3rem; font-weight: bold; border: 2px solid var(--wood-medium); }
 
         /* UI Elements */
         .lobby-phase { 
@@ -252,6 +266,26 @@
         }
         .lobby-phase.active { display: flex; }
         @keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        
+        .room-selection-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f4f1ea;
+            background-image: url('math_parchment_texture.png');
+            background-size: 800px;
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000; overflow: hidden;
+        }
+        .room-selection-panel {
+            background: var(--parchment); padding: 40px;
+            border-radius: 30px;
+            box-shadow: 10px 0 50px rgba(0,0,0,0.5), inset 0 0 40px rgba(139, 69, 19, 0.15); 
+            border: 10px solid var(--wood-dark); 
+            width: 950px; max-width: 95%; height: 500px;
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+            display: flex; flex-direction: column; align-items: center;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
         
         input { background: white; border: 3px solid var(--wood-light); padding: 12px; border-radius: 20px; font-size: 1.3rem; font-family: 'Gaegu'; outline: none; width: 280px; text-align: center; }
         button { padding: 12px 30px; border-radius: 25px; border: none; background: var(--wood-medium); color: var(--parchment); font-weight: 700; font-family: 'Gaegu'; font-size: 1.5rem; cursor: pointer; transition: 0.2s; box-shadow: 0 6px 0 var(--wood-dark); }
@@ -271,6 +305,41 @@
         }
         .item-card:hover { transform: scale(1.1) rotate(5deg); z-index: 300; }
         .ap-indicator { font-size: 1.8rem; color: #ffeb3b; text-shadow: 0 0 10px rgba(255,235,59,0.8); margin-bottom: 5px; text-align: center; }
+
+        /* Hand Zones */
+        .hand-zone {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 15px;
+            padding: 12px 15px;
+            position: relative;
+            border: 2px dashed rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .hand-zone::before {
+            content: attr(data-title);
+            position: absolute;
+            top: -12px; left: 20px;
+            background: var(--wood-dark);
+            color: var(--warning);
+            padding: 2px 15px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+            border: 2px solid var(--wood-medium);
+            z-index: 10;
+        }
+        .hand-zone.num-zone { border-color: rgba(255, 253, 240, 0.2); background: rgba(255, 253, 240, 0.05); }
+        .hand-zone.op-zone { border-color: rgba(224, 242, 241, 0.2); background: rgba(224, 242, 241, 0.05); }
+        .hand-zone.item-zone { border-color: rgba(255, 235, 59, 0.3); background: rgba(255, 249, 196, 0.08); }
+        
+        .empty-slot-msg {
+            position: absolute;
+            color: rgba(255,255,255,0.3);
+            font-size: 1.2rem;
+            pointer-events: none;
+            z-index: 0;
+        }
 
         /* Dynamic Effects */
         .effect-overlay {
@@ -412,30 +481,32 @@
                     <button style="background:var(--success); width:100%; padding:15px; font-size:1.2rem; border-radius:12px;" onclick="goToPhase(2)">Ready ➔</button>
                 </div>
             </div>
-            <div class="lobby-phase" id="phase-action" style="width:100%;">
-                <p style="font-size:1.4rem; color:var(--wood-dark); font-weight:700; margin-bottom:20px; text-align:center; font-family:'Nanum Pen Script';">Ready to Play</p>
-                <div style="display:flex; align-items:center; width:100%; justify-content:space-between; margin-bottom:15px;">
-                    <button onclick="goToPhase(1)" style="font-size:1rem; padding:5px 20px;">❮ 뒤로</button>
-                    <p style="font-size:1.6rem; color:var(--wood-dark); font-weight:700;">어떤 모험을 시작할까요?</p>
-                    <div style="width:70px;"></div>
+        </div>
+    </div>
+
+    <div class="room-selection-wrapper" id="room-selection-wrapper">
+        <div class="room-selection-panel" id="phase-action">
+            <div style="display:flex; align-items:center; width:100%; justify-content:space-between; margin-bottom:20px;">
+                <button onclick="goToPhase(1)" style="font-size:1.2rem; padding:8px 25px;">❮ 캐릭터 변경</button>
+                <p style="font-size:2.2rem; color:var(--wood-dark); font-weight:700; margin:0;">어떤 모험을 시작할까요?</p>
+                <div style="width:130px;"></div>
+            </div>
+            <div style="display:grid; grid-template-columns:310px 1fr; gap:30px; width:100%; height:100%;">
+                <div class="action-card" style="justify-content:center; gap:20px;">
+                    <h3 style="font-size:2rem; margin:0;">방 만들기 🛖</h3>
+                    <input type="text" id="roomCodeInput" placeholder="방 이름" style="width:90%; font-size:1.4rem; padding:15px;">
+                    <div style="display:flex; gap:10px; margin:10px 0; width:90%;">
+                        <span style="font-size:1.3rem; color:var(--wood-dark); font-weight:700; align-self:center; white-space:nowrap;">Magic Number:</span>
+                        <button id="target-btn-10"  onclick="selectTarget(10)"  style="flex:1; font-size:1.3rem; padding:10px 0; background:var(--warning); color:var(--ink); box-shadow:0 4px 0 var(--wood-dark);">10</button>
+                        <button id="target-btn-50"  onclick="selectTarget(50)"  style="flex:1; font-size:1.3rem; padding:10px 0; background:var(--wood-light); box-shadow:0 4px 0 var(--wood-dark);">50</button>
+                        <button id="target-btn-100" onclick="selectTarget(100)" style="flex:1; font-size:1.3rem; padding:10px 0; background:var(--wood-light); box-shadow:0 4px 0 var(--wood-dark);">100</button>
+                    </div>
+                    <button onclick="joinRoom('create')" style="width:90%; background:var(--success); font-size:1.6rem; padding:15px;">새 모험 시작!</button>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px; width:100%; margin-top:10px;">
-                    <div class="action-card">
-                        <h3>방 만들기 🔨</h3>
-                        <input type="text" id="roomCodeInput" placeholder="방 이름" style="width:100%; font-size:1rem;">
-                        <div style="display:flex; gap:8px; margin:4px 0;">
-                            <span style="font-size:1rem; color:var(--wood-dark); font-weight:700; align-self:center;">Magic Number:</span>
-                            <button id="target-btn-10"  onclick="selectTarget(10)"  style="flex:1; font-size:1.1rem; padding:8px 0; background:var(--warning); color:var(--ink); box-shadow:0 3px 0 var(--wood-dark);">10</button>
-                            <button id="target-btn-50"  onclick="selectTarget(50)"  style="flex:1; font-size:1.1rem; padding:8px 0; background:var(--wood-light); box-shadow:0 3px 0 var(--wood-dark);">50</button>
-                            <button id="target-btn-100" onclick="selectTarget(100)" style="flex:1; font-size:1.1rem; padding:8px 0; background:var(--wood-light); box-shadow:0 3px 0 var(--wood-dark);">100</button>
-                        </div>
-                        <button onclick="joinRoom('create')" style="width:100%; background:var(--success); font-size:1.2rem;">새 모험 시작!</button>
-                    </div>
-                    <div class="action-card" style="position:relative;">
-                        <div class="refresh-btn" id="refresh-btn-ui" onclick="uiRefreshRooms()"></div>
-                        <h3>방 찾기 🚪</h3>
-                        <div id="room-list" style="width:100%; height:140px; overflow-y:auto; background:#faf3e0; border-radius:20px; padding:10px;"></div>
-                    </div>
+                <div class="action-card" style="position:relative; justify-content:flex-start;">
+                    <div class="refresh-btn" id="refresh-btn-ui" onclick="uiRefreshRooms()" style="top:25px; right:25px; width:45px; height:45px;"></div>
+                    <h3 style="font-size:2rem; margin-top:10px; margin-bottom:15px;">방 찾기 🔍</h3>
+                    <div id="room-list" style="width:100%; flex:1; overflow-y:auto; background:#faf3e0; border-radius:20px; padding:15px;"></div>
                 </div>
             </div>
         </div>
@@ -447,12 +518,14 @@
             <span id="target-badge" style="background:var(--warning); color:var(--ink); padding:2px 14px; border-radius:20px; font-size:1.2rem;">Magic Number: 10</span>
             <button onclick="leaveRoom()" style="font-size:0.9rem; padding:4px 12px; background:var(--accent); box-shadow:none;">나가기 🚪</button>
         </div>
+        
+        <div id="game-scale-wrapper" style="display:flex; flex-direction:column; align-items:center; gap:15px;">
         <div class="main-board">
-            <div class="board-zone" data-title="중앙 시장" style="height:140px; display:flex; justify-content:space-around; align-items:center;">
-                <div style="display:flex; flex-direction:column; align-items:center; gap:2px;"><div style="color:white; font-size:0.8rem; opacity:0.8;">숫자 타일</div><div id="shared-numbers" style="display:flex; gap:8px;"></div></div>
-                <div style="display:flex; flex-direction:column; align-items:center; gap:2px;"><div style="color:white; font-size:0.8rem; opacity:0.8;">연산 타일</div><div id="shared-operators" style="display:flex; gap:8px;"></div></div>
+            <div class="board-zone" data-title="중앙 시장" style="height:140px; width:680px; margin:0 auto; display:flex; justify-content:space-around; align-items:center;">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="color:white; font-size:1.1rem; font-weight:bold; opacity:0.9;">숫자 타일</div><div id="shared-numbers" style="display:flex; gap:8px;"></div></div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="color:white; font-size:1.1rem; font-weight:bold; opacity:0.9;">연산 타일</div><div id="shared-operators" style="display:flex; gap:8px;"></div></div>
             </div>
-            <div class="board-zone" id="workbench" data-title="나의 제작소" style="height:130px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <div class="board-zone" id="workbench" data-title="나의 제작소" style="height:130px; width:680px; margin:0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div style="position:absolute; top:8px; right:10px; display:flex; gap:5px; z-index:20;">
                     <button style="width:35px; padding:4px; background:var(--wood-dark); font-size:1rem; box-shadow:none; border-radius:10px;" onclick="addToFormula('(', 'system')">(</button>
                     <button style="width:35px; padding:4px; background:var(--wood-dark); font-size:1rem; box-shadow:none; border-radius:10px;" onclick="addToFormula(')', 'system')">)</button>
@@ -462,6 +535,18 @@
                 <div id="formula-result" style="margin-top:10px; background:var(--warning); color:var(--ink); padding:3px 20px; border-radius:15px; font-weight:700; font-size:1.2rem;">수식을 조립해보세요!</div>
             </div>
             <div id="players-layer"></div>
+            
+            <div id="action-panel" style="position:absolute; right:-210px; top:-15px; display:flex; flex-direction:column; gap:10px; width:180px; z-index:250;">
+                <div id="ap-display" class="ap-indicator">⚡⚡</div>
+                <button id="draw-btn" class="disabled" onclick="drawCard()">뽑기 🎲</button>
+                <div style="display:flex; gap:5px;">
+                    <button id="swap-btn" class="disabled" style="flex:1;" onclick="executeSwap()">교체 🔄</button>
+                    <button id="cancel-swap-btn" style="background:#e57373; width:50px; padding:12px 0; display:none;" onclick="resetSelection()">❌</button>
+                </div>
+                <button id="submit-btn" style="background:var(--success); font-size:1.05rem; padding:12px 0;" onclick="submitFormula()">Make Magic Number!! 🏆</button>
+                <button id="start-btn" style="display:none; background:var(--warning); color:var(--ink);" onclick="startGame()">시작 🏁</button>
+                <div id="turn-status" style="text-align:center; color:white; font-size:0.9rem;">기다리는 중...</div>
+            </div>
         </div>
         
         <div class="hands-area" style="flex-direction:column; padding:15px 30px; border-radius:30px; gap:10px;">
@@ -470,30 +555,27 @@
                     <div class="avatar" id="my-avatar"></div>
                     <div class="name-tag" id="my-name" style="font-size:0.8rem;">나</div>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; flex-direction:column; gap:25px; margin-top:5px;">
                     <!-- 첫 번째 줄: 숫자 카드 7장 -->
-                    <div id="my-numbers" style="display:flex; gap:8px;"></div>
+                    <div class="hand-zone num-zone" data-title="숫자 카드">
+                        <div id="my-numbers" style="display:flex; gap:8px; min-height:95px; min-width: 500px; justify-content:center; position:relative; z-index:1;"></div>
+                        <div class="empty-slot-msg">숫자 카드 7장</div>
+                    </div>
                     <!-- 두 번째 줄: 연산 4장 + 아이템 3장 (총 7장 대칭) -->
                     <div style="display:flex; gap:20px; align-items:center;">
-                        <div id="my-operators" style="display:flex; gap:8px;"></div>
-                        <div style="width:2px; height:30px; background:rgba(255,255,255,0.15);"></div>
-                        <div id="my-items" style="display:flex; gap:8px;"></div>
+                        <div class="hand-zone op-zone" data-title="연산 기호">
+                            <div id="my-operators" style="display:flex; gap:8px; min-height:95px; min-width: 280px; justify-content:center; position:relative; z-index:1;"></div>
+                            <div class="empty-slot-msg">연산 4장</div>
+                        </div>
+                        <div class="hand-zone item-zone" data-title="마법 아이템">
+                            <div id="my-items" style="display:flex; gap:8px; min-height:95px; min-width: 210px; justify-content:center; position:relative; z-index:1;"></div>
+                            <div class="empty-slot-msg">아이템 3장</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="action-panel" style="position:fixed; right:30px; bottom:180px; display:flex; flex-direction:column; gap:10px; width:180px; z-index:250;">
-            <div id="ap-display" class="ap-indicator">⚡⚡</div>
-            <button id="draw-btn" class="disabled" onclick="drawCard()">뽑기 🎲</button>
-            <div style="display:flex; gap:5px;">
-                <button id="swap-btn" class="disabled" style="flex:1;" onclick="executeSwap()">교체 🔄</button>
-                <button id="cancel-swap-btn" style="background:#e57373; width:50px; padding:12px 0; display:none;" onclick="resetSelection()">❌</button>
-            </div>
-            <button id="submit-btn" style="background:var(--success); font-size:1.4rem;" onclick="submitFormula()">MAGIC! 🏆</button>
-            <button id="start-btn" style="display:none; background:var(--warning); color:var(--ink);" onclick="startGame()">시작 🏁</button>
-            <div id="turn-status" style="text-align:center; color:white; font-size:0.9rem;">기다리는 중...</div>
-        </div>
     </div>
 
     <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center;">
@@ -570,10 +652,14 @@
             if (phase === 2 && !document.getElementById('nickname').value.trim())
                 return showToast('🖊️ 이름을 먼저 알려주세요!');
             SFX.click();
-            document.querySelectorAll('.lobby-phase').forEach(p => p.classList.remove('active'));
-            if (phase === 1) document.getElementById('phase-identity').classList.add('active');
+            
+            if (phase === 1) {
+                document.getElementById('lobby-wrapper').style.display = 'flex';
+                document.getElementById('room-selection-wrapper').style.display = 'none';
+            }
             if (phase === 2) {
-                document.getElementById('phase-action').classList.add('active');
+                document.getElementById('lobby-wrapper').style.display = 'none';
+                document.getElementById('room-selection-wrapper').style.display = 'flex';
                 socket.emit('requestRandomName');
                 refreshRooms();
             }
@@ -600,9 +686,11 @@
             rooms.forEach(room => {
                 const item = document.createElement('div');
                 item.className = 'room-item-mini';
-                item.style = 'display:flex; justify-content:space-between; align-items:center; padding:8px 15px; background:white; margin-bottom:6px; border-radius:12px; border-bottom:3px solid #d7ccc8; font-size:0.9rem; cursor:pointer;';
+                item.style = 'display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:white; margin-bottom:10px; border-radius:16px; border-bottom:4px solid #d7ccc8; font-size:1.2rem; cursor:pointer; transition:0.2s;';
+                item.onmouseover = () => item.style.transform = 'scale(1.02)';
+                item.onmouseout = () => item.style.transform = 'scale(1)';
                 item.onclick = () => joinRoom('join', room.code);
-                item.innerHTML = `<div>🔮 ${room.code}</div><div style="display:flex;gap:6px;align-items:center;"><span style="background:var(--warning);color:var(--ink);padding:1px 8px;border-radius:10px;font-size:0.8rem;">${room.targetNumber||10}</span>👤 ${room.playerCount}/4</div>`;
+                item.innerHTML = `<div style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px;" title="${room.code}">🔮 ${room.code}</div><div style="display:flex;gap:10px;align-items:center; white-space:nowrap;"><span style="background:var(--warning);color:var(--ink);padding:2px 10px;border-radius:12px;font-size:0.95rem;font-weight:bold;">Magic Number ${room.targetNumber||10}</span><span style="font-size:1rem;">👤 ${room.playerCount}/4</span></div>`;
                 listDiv.appendChild(item);
             });
         });
@@ -618,28 +706,20 @@
         }
         socket.on('joinRoomSuccess', () => { 
             document.getElementById('lobby-wrapper').style.display = 'none'; 
+            document.getElementById('room-selection-wrapper').style.display = 'none'; 
             document.getElementById('game-board').style.display = 'flex'; 
             autoScale();
         });
 
         function autoScale() {
-            const board = document.querySelector('.main-board');
-            const hands = document.querySelector('.hands-area');
-            const actions = document.getElementById('action-panel');
-            if (!board) return;
+            const wrapper = document.getElementById('game-scale-wrapper');
+            if (!wrapper) return;
 
-            const scale = Math.min(window.innerWidth / 1000, window.innerHeight / 750);
+            const scale = Math.min(window.innerWidth / 1200, window.innerHeight / 620);
             if (scale < 1) {
-                board.style.transform = `scale(${scale})`;
-                if (hands) hands.style.transform = `translateX(-50%) scale(${scale})`;
-                if (actions) {
-                    actions.style.transform = `scale(${scale})`;
-                    actions.style.transformOrigin = 'bottom right';
-                }
+                wrapper.style.transform = `scale(${scale})`;
             } else {
-                board.style.transform = 'scale(1)';
-                if (hands) hands.style.transform = 'translateX(-50%) scale(1)';
-                if (actions) actions.style.transform = 'scale(1)';
+                wrapper.style.transform = 'scale(1)';
             }
         }
         window.addEventListener('resize', autoScale);
@@ -649,7 +729,7 @@
             if (!confirm('정말 모험을 중단하고 로비로 돌아갈까요?')) return;
             SFX.click();
             socket.emit('leaveRoom', currentRoom);
-            document.getElementById('lobby-wrapper').style.display = 'flex';
+            document.getElementById('room-selection-wrapper').style.display = 'flex';
             document.getElementById('game-board').style.display = 'none';
             currentRoom = null;
             formulaCards = [];
@@ -843,7 +923,7 @@
             const badge = document.getElementById('target-badge');
             if (badge) badge.innerText = `Magic Number: ${target}`;
             const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) submitBtn.innerText = `MAKE ${target}! 🏆`;
+            if (submitBtn) submitBtn.innerText = `Make Magic Number!! 🏆`;
             
             const startBtn = document.getElementById('start-btn');
             if (me.isHost && (room.status === 'waiting' || room.status === undefined)) {

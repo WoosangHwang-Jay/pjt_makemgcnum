@@ -114,3 +114,10 @@ git commit -m "feat: implement server-side game logic and room management"
 git add server.js public/index.html
 git commit -m "feat: add opponent info area and last discarded card visibility"
 ```
+
+---
+
+### Task 6: 아이템 카드 밸런스 조정 (Next Steps)
+**Objective:**
+- 다음 세션에서 아이템 카드(마법 아이템)의 효과와 사용 빈도를 점검하고 밸런스를 조정합니다.
+- 너무 강력하거나 무의미한 아이템 효과 수정 및 확률 조정.
