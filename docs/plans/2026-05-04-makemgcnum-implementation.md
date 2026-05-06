@@ -1,8 +1,8 @@
-# Make 10 Implementation Plan
+# Make Magic Number Implementation Plan
 
 > **For Antigravity:** REQUIRED WORKFLOW: Use `.agent/workflows/execute-plan.md` to execute this plan in single-flow mode.
 
-**Goal:** Build a real-time multiplayer board game 'Make 10' with a custom formula parser and a "Modern & Tech" dark mode UI.
+**Goal:** Build a real-time multiplayer board game 'Make Magic Number' with a custom formula parser and a "Rustic Board Game" UI.
 
 **Architecture:** Server-authoritative state management using Node.js and Socket.io. Custom Shunting-yard algorithm for formula evaluation to ensure safety and rule compliance.
 
@@ -121,3 +121,10 @@ git commit -m "feat: add opponent info area and last discarded card visibility"
 **Objective:**
 - 다음 세션에서 아이템 카드(마법 아이템)의 효과와 사용 빈도를 점검하고 밸런스를 조정합니다.
 - 너무 강력하거나 무의미한 아이템 효과 수정 및 확률 조정.
+
+---
+
+### Task 7: Render.com을 통한 라이브 배포 (Next Steps)
+**Objective:**
+- 게임을 다른 사람들과 함께 즐길 수 있도록 GitHub와 Render.com을 연동하여 자동 배포 환경을 구축합니다.
+- 서버 환경 변수 및 포트(`process.env.PORT`) 최적화 점검.

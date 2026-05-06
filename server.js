@@ -238,10 +238,19 @@ io.on('connection', (socket) => {
 
         let drawn = false;
 
+        // 아이템 획득 가중치 로직
+        const getWeightedItem = () => {
+            const rand = Math.random();
+            if (rand < 0.30) return '⏳';      // 모래시계 30%
+            if (rand < 0.60) return '🌀';      // 소용돌이 30%
+            if (rand < 0.75) return '🧤';      // 도둑장갑 15%
+            if (rand < 0.90) return '🎁';      // 보물상자 15%
+            return '🍀';                       // 네잎클로버 10%
+        };
+
         // 아이템 뽑기 확률 (약 20%) - 아이템 슬롯이 있을 때만
         if (Math.random() < 0.20 && canDrawItem) {
-            const items = ['🍀', '⏳', '🎁', '🌀', '🧤'];
-            player.handItems.push(items[Math.floor(Math.random() * items.length)]);
+            player.handItems.push(getWeightedItem());
             drawn = true;
         } else {
             // 뽑을 수 있는 타입만 후보로 등록 (용량 + 덱 잔량 모두 확인)
@@ -259,8 +268,7 @@ io.on('connection', (socket) => {
                 drawn = true;
             } else if (canDrawItem) {
                 // 일반 카드를 뽑을 수 없으면 아이템 강제 뽑기
-                const items = ['🍀', '⏳', '🎁', '🌀', '🧤'];
-                player.handItems.push(items[Math.floor(Math.random() * items.length)]);
+                player.handItems.push(getWeightedItem());
                 drawn = true;
             }
         }
@@ -316,12 +324,19 @@ io.on('connection', (socket) => {
 
         let used = false;
         if (item === '🍀') { // 네잎클로버: 즉시 풀 보충
-            // 숫자와 연산 모두 가득 찼으면 사용 불가
-            if (player.handNumbers.length >= 7 && player.handOperators.length >= 4) {
-                return socket.emit('error', '숫자(7장)와 연산(4장)이 모두 가득 찼습니다! 먼저 수식을 만들거나 교체해보세요.');
+            let drawn = false;
+            while (player.handNumbers.length < 7 && room.numDeck.length > 0) {
+                player.handNumbers.push(room.numDeck.pop());
+                drawn = true;
             }
-            while (player.handNumbers.length < 7 && room.numDeck.length > 0) player.handNumbers.push(room.numDeck.pop());
-            while (player.handOperators.length < 4 && room.opDeck.length > 0) player.handOperators.push(room.opDeck.pop());
+            while (player.handOperators.length < 4 && room.opDeck.length > 0) {
+                player.handOperators.push(room.opDeck.pop());
+                drawn = true;
+            }
+            
+            if (!drawn) {
+                return socket.emit('error', '가져올 수 있는 카드가 없거나 이미 손패가 가득 찼습니다.');
+            }
             used = true;
         } else if (item === '⏳') { // 모래시계: 행동 포인트 보너스 (항상 사용 가능)
             room.currentAP += 2; 
