@@ -440,6 +440,20 @@
             animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
         @keyframes bounceIn { from { transform: translate(-50%, -100px); } to { transform: translate(-50%, 0); } }
+
+        /* 모바일(가로) 최적화: 가로폭이 좁을 때 메인 이미지 숨김 및 게임 보드 축소 */
+        @media (max-width: 1000px) {
+            .hero-frame { display: none; }
+            .lobby-wrapper { gap: 10px; padding: 10px; }
+            .room-selection-panel { transform: scale(0.85); transform-origin: center; }
+            .main-board { transform: scale(0.85); transform-origin: center top; margin-top: 10px; }
+            .hands-area { transform: scale(0.85); transform-origin: center bottom; }
+        }
+        @media (max-width: 800px) {
+            .room-selection-panel { transform: scale(0.7); }
+            .main-board { transform: scale(0.65); }
+            .hands-area { transform: scale(0.75); }
+        }
     </style>
 </head>
 <body ondragover="event.preventDefault()" ondrop="handleGlobalDrop(event)">
