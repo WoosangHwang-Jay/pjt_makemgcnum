@@ -64,69 +64,79 @@ function shuffle(array) {
 }
 
 // --- Socket Helpers ---
+function removePlayerFromRoom(roomCode, socketId) {
+    const room = rooms[roomCode];
+    if (!room) return false;
+
+    const leavingIdx = room.players.findIndex(p => p.id === socketId);
+    if (leavingIdx === -1) return false;
+
+    const leavingPlayer = room.players[leavingIdx];
+    console.log(`[Room] Removing ${leavingPlayer.nickname} (${socketId}) from ${roomCode}`);
+
+    // 게임 진행 중일 때의 특수 로직
+    if (room.status === 'playing') {
+        if (leavingIdx === room.turnIndex) {
+            // 현재 턴인 사람이 나가는 경우 -> AP 리셋하여 다음 사람에게 넘김
+            room.currentAP = 2;
+        } else if (leavingIdx < room.turnIndex) {
+            // 현재 턴 이전의 플레이어가 나가면 인덱스가 한 칸씩 당겨지므로 보정
+            room.turnIndex--;
+        }
+    }
+
+    room.players.splice(leavingIdx, 1);
+
+    // 인덱스 범위 초과 방지 (마지막 플레이어가 나갔을 때 등)
+    if (room.turnIndex >= room.players.length) {
+        room.turnIndex = 0;
+    }
+
+    if (room.players.length === 0) {
+        delete rooms[roomCode];
+    } else {
+        // 호스트 권한 보정
+        room.players.forEach((p, i) => p.isHost = (i === 0));
+        // 최소 인원 미달 시 게임 중단
+        if (room.players.length < 2 && room.status === 'playing') {
+            room.status = 'lobby';
+        }
+        io.to(roomCode).emit('roomUpdate', room);
+    }
+    return true;
+}
+
 function auditRooms() {
     let changed = false;
     const sids = io.sockets.adapter.sids;
-    console.log(`[Audit Start] Physical Sockets: ${sids.size}, Recorded Rooms: ${Object.keys(rooms).length}`);
     
     for (const code of Object.keys(rooms)) {
         const room = rooms[code];
-        if (!room || !room.players) {
-            console.log(`[Audit] Deleting corrupted room data: ${code}`);
-            delete rooms[code];
-            changed = true;
-            continue;
-        }
+        if (!room || !room.players) continue;
 
-        const initialCount = room.players.length;
-        
-        // 유령 플레이어 상세 로그
-        room.players = room.players.filter(p => {
-            const isAlive = sids.has(p.id);
-            if (!isAlive) console.log(`[Audit] Found Ghost! Room: ${code}, Nickname: ${p.nickname}, ID: ${p.id}`);
-            return isAlive;
-        });
-        
-        if (room.players.length !== initialCount) {
-            console.log(`[Audit] Cleaned ${initialCount - room.players.length} ghosts from room: ${code}`);
+        // 연결이 끊긴 유령 플레이어 추출
+        const deadPlayers = room.players.filter(p => !sids.has(p.id));
+        if (deadPlayers.length > 0) {
+            deadPlayers.forEach(p => {
+                console.log(`[Audit] Found Ghost! Room: ${code}, Nickname: ${p.nickname}`);
+                removePlayerFromRoom(code, p.id);
+            });
             changed = true;
-        }
-
-        if (room.players.length === 0) {
-            console.log(`[Audit] Deleting now-empty room: ${code}`);
-            delete rooms[code];
-            changed = true;
-        } else if (changed) {
-            room.players.forEach((p, i) => p.isHost = (i === 0));
-            io.to(code).emit('roomUpdate', room);
         }
     }
-    console.log(`[Audit End] Changed: ${changed}, Final Room Count: ${Object.keys(rooms).length}`);
     return changed;
 }
 
 function leaveAllRooms(socket) {
     let changed = false;
-    for (const code in rooms) {
-        const room = rooms[code];
-        const initialCount = room.players.length;
-        
-        // 해당 소켓 ID를 가진 모든 항목을 한꺼번에 제거 (누적 방지)
-        room.players = room.players.filter(p => p.id !== socket.id);
-        
-        if (room.players.length !== initialCount) {
-            console.log(`[Cleanup] Removed ${socket.id} (Instances: ${initialCount - room.players.length}) from ${code}`);
-            if (room.players.length === 0) {
-                delete rooms[code];
-            } else {
-                room.players.forEach((p, i) => p.isHost = (i === 0));
-                io.to(code).emit('roomUpdate', room);
-            }
+    for (const code of Object.keys(rooms)) {
+        if (removePlayerFromRoom(code, socket.id)) {
             changed = true;
         }
     }
-    // 인원 변화가 있다면 무조건 모든 로비 사용자에게 알림
-    io.emit('roomList', getActiveRooms());
+    if (changed) {
+        io.emit('roomList', getActiveRooms());
+    }
 }
 
 io.on('connection', (socket) => {
