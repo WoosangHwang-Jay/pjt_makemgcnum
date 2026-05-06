@@ -177,8 +177,12 @@ io.on('connection', (socket) => {
                 targetNumber: target
             };
         } else {
-            if (!rooms[roomCode]) return socket.emit('error', '방이 존재하지 않습니다.');
-            if (rooms[roomCode].players.length >= 4) return socket.emit('error', '방이 가득 찼습니다.');
+            const room = rooms[roomCode];
+            if (!room) return socket.emit('error', '방이 존재하지 않습니다.');
+            if (room.status === 'playing') {
+                return socket.emit('error', '이미 게임이 진행 중인 방입니다. 게임이 끝날 때까지 기다려 주세요.');
+            }
+            if (room.players.length >= 4) return socket.emit('error', '방이 가득 찼습니다.');
         }
 
         const room = rooms[roomCode];
