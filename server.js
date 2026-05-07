@@ -63,6 +63,29 @@ function shuffle(array) {
     return array;
 }
 
+function drawFromDeck(room, type) {
+    if (type === 'number') {
+        if (room.numDeck.length === 0) {
+            console.log(`[Game] Refilling Number Deck in room: ${room.code}`);
+            for (let i = 1; i <= 9; i++) {
+                for (let j = 0; j < 4; j++) room.numDeck.push(i);
+            }
+            shuffle(room.numDeck);
+        }
+        return room.numDeck.pop();
+    } else {
+        if (room.opDeck.length === 0) {
+            console.log(`[Game] Refilling Operator Deck in room: ${room.code}`);
+            const ops = ['+', '-', '*', '/', '√', '²', '!'];
+            ops.forEach(op => {
+                for (let j = 0; j < 5; j++) room.opDeck.push(op);
+            });
+            shuffle(room.opDeck);
+        }
+        return room.opDeck.pop();
+    }
+}
+
 // --- Socket Helpers ---
 function removePlayerFromRoom(roomCode, socketId) {
     const room = rooms[roomCode];
@@ -97,9 +120,20 @@ function removePlayerFromRoom(roomCode, socketId) {
     } else {
         // 호스트 권한 보정
         room.players.forEach((p, i) => p.isHost = (i === 0));
-        // 최소 인원 미달 시 게임 중단
-        if (room.players.length < 2 && room.status === 'playing') {
-            room.status = 'lobby';
+        // 진행 중인 게임에서 인원이 1명 이하로 떨어지면 강제 종료
+        if (room.status === 'playing' && room.players.length < 2) {
+            console.log(`[Game] Ending game in room ${roomCode} - Not enough players.`);
+            room.status = 'waiting';
+            room.numDeck = [];
+            room.opDeck = [];
+            room.sharedNumbers = [];
+            room.sharedOperators = [];
+            room.players.forEach(p => {
+                p.handNumbers = [];
+                p.handOperators = [];
+                p.handItems = [];
+            });
+            io.to(roomCode).emit('gameEnded', '상대방이 떠나 게임이 중단되었습니다. 로비로 이동합니다. 🚪');
         }
         io.to(roomCode).emit('roomUpdate', room);
     }
@@ -219,11 +253,11 @@ io.on('connection', (socket) => {
             const { numDeck, opDeck } = createDecks();
             room.numDeck = numDeck;
             room.opDeck = opDeck;
-            room.sharedNumbers = [room.numDeck.pop(), room.numDeck.pop(), room.numDeck.pop()];
-            room.sharedOperators = [room.opDeck.pop(), room.opDeck.pop()];
+            room.sharedNumbers = [drawFromDeck(room, 'number'), drawFromDeck(room, 'number'), drawFromDeck(room, 'number')];
+            room.sharedOperators = [drawFromDeck(room, 'operator'), drawFromDeck(room, 'operator')];
             room.players.forEach(p => {
-                p.handNumbers = [room.numDeck.pop(), room.numDeck.pop()];
-                p.handOperators = [room.opDeck.pop()];
+                p.handNumbers = [drawFromDeck(room, 'number'), drawFromDeck(room, 'number')];
+                p.handOperators = [drawFromDeck(room, 'operator')];
                 p.handItems = []; // 아이템 가방 초기화
             });
             room.status = 'playing';
@@ -275,9 +309,9 @@ io.on('connection', (socket) => {
             if (drawableTypes.length > 0) {
                 const typeToDraw = drawableTypes[Math.floor(Math.random() * drawableTypes.length)];
                 if (typeToDraw === 'number') {
-                    player.handNumbers.push(room.numDeck.pop());
+                    player.handNumbers.push(drawFromDeck(room, 'number'));
                 } else {
-                    player.handOperators.push(room.opDeck.pop());
+                    player.handOperators.push(drawFromDeck(room, 'operator'));
                 }
                 drawn = true;
             } else if (canDrawItem) {
@@ -329,7 +363,7 @@ io.on('connection', (socket) => {
 
     socket.on('useItem', ({ roomCode, itemIdx, targetId, extraData }) => {
         const room = rooms[roomCode];
-        if (!room || room.status !== 'playing' || room.currentAP <= 0) return;
+        if (!room || room.status !== 'playing') return;
         const player = room.players[room.turnIndex];
         if (player.id !== socket.id) return socket.emit('error', '자신의 차례가 아닙니다.');
 
@@ -339,12 +373,12 @@ io.on('connection', (socket) => {
         let used = false;
         if (item === '🍀') { // 네잎클로버: 즉시 풀 보충
             let drawn = false;
-            while (player.handNumbers.length < 7 && room.numDeck.length > 0) {
-                player.handNumbers.push(room.numDeck.pop());
+            while (player.handNumbers.length < 7) {
+                player.handNumbers.push(drawFromDeck(room, 'number'));
                 drawn = true;
             }
-            while (player.handOperators.length < 4 && room.opDeck.length > 0) {
-                player.handOperators.push(room.opDeck.pop());
+            while (player.handOperators.length < 4) {
+                player.handOperators.push(drawFromDeck(room, 'operator'));
                 drawn = true;
             }
             
@@ -352,18 +386,12 @@ io.on('connection', (socket) => {
                 return socket.emit('error', '가져올 수 있는 카드가 없거나 이미 손패가 가득 찼습니다.');
             }
             used = true;
-        } else if (item === '⏳') { // 모래시계: 행동 포인트 보너스 (항상 사용 가능)
-            room.currentAP += 2; 
+        } else if (item === '⏳') { // 모래시계: 행동 포인트 보너스 (+1)
+            room.currentAP += 1; 
             used = true;
         } else if (item === '🌀') { // 소용돌이: 시장 새로고침
-            room.sharedNumbers = room.sharedNumbers.map(() => {
-                const card = room.numDeck.pop();
-                return card !== undefined ? card : room.sharedNumbers[0] || 5;
-            });
-            room.sharedOperators = room.sharedOperators.map(() => {
-                const card = room.opDeck.pop();
-                return card !== undefined ? card : room.sharedOperators[0] || '+';
-            });
+            room.sharedNumbers = room.sharedNumbers.map(() => drawFromDeck(room, 'number'));
+            room.sharedOperators = room.sharedOperators.map(() => drawFromDeck(room, 'operator'));
             used = true;
         } else if (item === '🎁') { // 보물상자: 시장 카드 1장 무료 획득
             if (extraData) {
@@ -378,12 +406,10 @@ io.on('connection', (socket) => {
                 const card = type === 'number' ? room.sharedNumbers[idx] : room.sharedOperators[idx];
                 if (type === 'number') {
                     player.handNumbers.push(card);
-                    const replacement = room.numDeck.pop();
-                    room.sharedNumbers[idx] = replacement !== undefined ? replacement : card;
+                    room.sharedNumbers[idx] = drawFromDeck(room, 'number');
                 } else {
                     player.handOperators.push(card);
-                    const replacement = room.opDeck.pop();
-                    room.sharedOperators[idx] = replacement !== undefined ? replacement : card;
+                    room.sharedOperators[idx] = drawFromDeck(room, 'operator');
                 }
                 used = true;
             }
@@ -391,8 +417,8 @@ io.on('connection', (socket) => {
             const opponents = room.players.filter(p => p.id !== socket.id);
             const target = targetId ? room.players.find(p => p.id === targetId) : opponents[Math.floor(Math.random() * opponents.length)];
             if (target) {
-                if (target.handNumbers.length > 0) target.handNumbers[Math.floor(Math.random() * target.handNumbers.length)] = room.numDeck.pop() || 3;
-                if (target.handOperators.length > 0) target.handOperators[Math.floor(Math.random() * target.handOperators.length)] = room.opDeck.pop() || '+';
+                if (target.handNumbers.length > 0) target.handNumbers[Math.floor(Math.random() * target.handNumbers.length)] = drawFromDeck(room, 'number');
+                if (target.handOperators.length > 0) target.handOperators[Math.floor(Math.random() * target.handOperators.length)] = drawFromDeck(room, 'operator');
                 io.to(target.id).emit('error', '앗! 누군가 내 카드를 바꿔치기했습니다! 🧤');
                 used = true;
             }
@@ -400,11 +426,7 @@ io.on('connection', (socket) => {
 
         if (used) {
             player.handItems.splice(itemIdx, 1);
-            room.currentAP--;
-            if (room.currentAP <= 0) {
-                room.turnIndex = (room.turnIndex + 1) % room.players.length;
-                room.currentAP = 2;
-            }
+            // ✅ 품질 개선: 아이템 사용은 이제 AP를 소모하지 않는 '프리 액션'입니다.
             io.to(roomCode).emit('roomUpdate', room);
             io.to(roomCode).emit('itemEffect', { item, user: player.nickname });
         }

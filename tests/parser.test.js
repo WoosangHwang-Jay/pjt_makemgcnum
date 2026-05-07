@@ -13,7 +13,7 @@ const testCases = [
     { expr: "(1 + 1)! + 8", expected: 10 }
 ];
 
-console.log("=== Make 10 Parser Unit Tests ===");
+console.log("=== Make Magic Number Parser Unit Tests ===");
 let passed = 0;
 
 testCases.forEach((tc, i) => {

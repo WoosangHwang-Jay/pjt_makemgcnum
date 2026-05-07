@@ -1,9 +1,9 @@
 # 2026-05-04-makemgcnum-design
 
 ## 1. Project Overview
-- **Name**: Make 10 (Online Board Game)
-- **Goal**: Create a real-time multiplayer card-based math strategy game where players aim to form the number 10 using their hand and shared cards.
-- **Key Philosophy**: "Modern & Tech" - A premium, high-tech aesthetic that appeals to strategy enthusiasts.
+- **Name**: Make Magic Number (Online Board Game)
+- **Goal**: Create a real-time multiplayer card-based math strategy game where players aim to form the target number using their hand and shared cards.
+- **Key Philosophy**: "Rustic & Warm Board Game" - A cozy, wooden-themed aesthetic.
 
 ## 2. Core Game Logic
 ### Card Deck Composition

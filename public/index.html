@@ -46,7 +46,7 @@
         }
         #lobby { 
             position: relative; z-index: 1010; display: flex; flex-direction: column; align-items: center; 
-            background: var(--parchment); padding: 30px 20px;
+            background: var(--parchment); padding: 40px 20px 35px; /* 패딩을 약간 조절하여 내부 간격 확보 */
             border-radius: 20px;
             box-shadow: 10px 0 50px rgba(0,0,0,0.5), inset 0 0 40px rgba(139, 69, 19, 0.15); 
             border: 8px solid var(--wood-dark); 
@@ -153,14 +153,28 @@
             display: flex; flex-direction: column; align-items: center; gap: 6px;
             cursor: pointer;
         }
+        .avatar-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            justify-items: center;
+            margin-bottom: 20px;
+        }
+        .avatar-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            justify-items: center;
+            margin-bottom: 20px;
+        }
         .avatar-box { 
-            width: 100px; height: 100px; border-radius: 20px;
+            width: 92px; height: 92px; border-radius: 20px;
             border: 5px solid var(--wood-light); 
             background-image: url('agricola_6_avatars.png'); background-size: 200% 300%; 
             cursor: pointer; transition: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             position: relative;
             box-shadow: 0 6px 0 var(--wood-dark), 0 8px 20px rgba(0,0,0,0.3);
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         .avatar-box:hover { transform: translateY(-6px) rotate(3deg); border-color: var(--wood-medium); }
         .avatar-box.selected { 
@@ -374,7 +388,70 @@
         @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
 
 
-        /* Item Confirm Modal */
+        /* Rules Modal */
+        #rules-modal .confirm-box {
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: left;
+            padding: 30px;
+        }
+        .rules-content h4 { color: var(--wood-dark); margin: 15px 0 5px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .rules-content p { font-size: 0.95rem; color: #5d4037; line-height: 1.5; margin: 0; }
+        .rules-content ul { padding-left: 20px; margin: 5px 0; }
+        .rules-content li { font-size: 0.9rem; color: #5d4037; margin-bottom: 4px; }
+        .rules-badge { background: var(--wood-dark); color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; }
+
+        .rules-badge { background: var(--wood-dark); color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; }
+
+        /* Help FAB Button */
+        .help-fab {
+            position: fixed !important;
+            bottom: 30px !important;
+            right: 30px !important;
+            width: 55px;
+            height: 55px;
+            background: var(--wood-dark);
+            color: var(--parchment);
+            border: 3px solid var(--warning);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+            z-index: 999999 !important;
+            transition: all 0.2s;
+        }
+        .help-fab:hover {
+            transform: scale(1.1) rotate(10deg);
+            background: var(--wood-medium);
+        }
+        .help-fab:active {
+            transform: scale(0.9);
+        }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 40000;
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.show { display: flex; animation: toastIn 0.2s ease-out; }
+        .confirm-box {
+            background: var(--parchment); border: 6px solid var(--wood-dark);
+            border-radius: 30px; padding: 30px 40px; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8); min-width: 300px;
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+        }
+        .confirm-box .c-icon { font-size: 3.5rem; margin-bottom: 10px; }
+        .confirm-box .c-name { font-size: 1.6rem; font-weight: 700; color: var(--wood-dark); margin-bottom: 5px; }
+        .confirm-box .c-desc { font-size: 1.1rem; color: var(--wood-medium); margin-bottom: 25px; }
+        .confirm-btns { display: flex; gap: 15px; justify-content: center; }
+        .confirm-btns button { font-size: 1.2rem; padding: 10px 25px; }
+
         #item-confirm-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.65); z-index: 30000;
@@ -443,30 +520,249 @@
 
         /* 모바일(가로) 최적화: 가로폭이 좁을 때 메인 이미지 숨김 및 게임 보드 축소 */
         @media (max-width: 1000px) {
-            .hero-frame { display: none; }
-            .lobby-wrapper { gap: 10px; padding: 10px; }
-            .room-selection-panel { transform: scale(0.85); transform-origin: center; }
-            .main-board { transform: scale(0.85); transform-origin: center top; margin-top: 10px; }
-            .hands-area { transform: scale(0.85); transform-origin: center bottom; }
+            .hero-frame { 
+                display: block !important; 
+                width: 380px !important; 
+                height: 380px !important;
+                border-width: 8px !important;
+            }
+            .lobby-wrapper { 
+                gap: 20px !important; padding: 0 10px !important; 
+                background-image: url('math_parchment_texture.png');
+                background-size: 600px;
+                justify-content: center !important;
+                height: 100vh !important;
+            }
+            
+            #lobby {
+                width: 380px !important; height: 380px !important; /* 일러스트와 높이 맞춤 */
+                padding: 25px 20px 15px !important;
+                border-width: 8px !important;
+                box-shadow: 0 0 40px rgba(0,0,0,0.5);
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+            }
+
+            /* 모바일 로고 제거 (왼쪽 일러스트에 이미 포함됨) */
+            #lobby .logo-plaque-mobile {
+                display: none !important;
+            }
+
+            #lobby::before {
+                display: none !important;
+            }
+
+            /* 버스트 광선도 제거 또는 대폭 축소 */
+            .logo-burst {
+                display: none !important;
+            }
+
+            #lobby .logo-plaque-mobile .logo-sub {
+                font-size: 0.8rem !important;
+                letter-spacing: 1px !important;
+                margin-bottom: -5px !important;
+                transform: none !important;
+                text-shadow: none !important;
+            }
+
+            #lobby .logo-plaque-mobile .logo {
+                font-size: 1.8rem !important;
+                margin: 0 !important;
+                transform: none !important;
+                animation: none !important;
+                text-shadow: 0 0 10px rgba(255,160,0,0.6) !important;
+                letter-spacing: 0 !important;
+            }
+
+            #phase-identity {
+                flex-direction: column !important; /* 다시 세로 배치 (공간 충분) */
+                justify-content: space-between !important;
+                align-items: center !important;
+                gap: 15px !important;
+                padding-top: 10px !important; 
+            }
+
+            #lobby .char-select-title {
+                font-size: 1.8rem !important; /* 높이에 맞춰 살짝 축소 */
+                margin: 0 0 5px 0 !important;
+                width: 100% !important;
+                text-align: center !important;
+                line-height: 1.1 !important;
+            }
+
+            .avatar-container {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 8px !important;
+                margin-bottom: 5px !important;
+            }
+
+            #lobby .avatar-box {
+                width: 62px !important; height: 62px !important; /* 380px 폭에 맞춰 최적화 */
+                margin-bottom: 2px !important;
+                border-width: 2px !important;
+            }
+
+            /* 선택 시 솟아오름 축소 */
+            #lobby .avatar-box.selected {
+                transform: scale(1.1) translateY(-2px) !important;
+                box-shadow: 0 0 20px var(--warning), 0 4px 10px rgba(0,0,0,0.4) !important;
+            }
+
+            /* 하단 입력란/버튼 영역 가로 전체 차지 및 하단으로 밀기 */
+            #phase-identity > div:last-child {
+                width: 100% !important;
+                margin-top: 5px !important;
+                padding-top: 0 !important;
+            }
+
+            #lobby input#nickname {
+                padding: 5px !important;
+                font-size: 0.95rem !important;
+                margin-bottom: 5px !important;
+            }
+
+            #lobby button {
+                padding: 8px 0 !important;
+                font-size: 1rem !important;
+            }
+
+            .room-selection-panel { 
+                transform: scale(0.85); 
+                width: 95vw; height: 92vh;
+                border-width: 6px !important;
+                padding: 15px 25px !important;
+            }
+
+            .room-selection-panel p {
+                font-size: 1.5rem !important;
+            }
+
+            .room-selection-panel .action-card {
+                padding: 10px !important;
+                gap: 5px !important;
+            }
+
+            .room-selection-panel input {
+                padding: 8px !important;
+                font-size: 1.1rem !important;
+            }
+
+            .room-selection-panel h3 {
+                font-size: 1.4rem !important;
+                margin: 5px 0 !important;
+            }
+
+            .room-selection-panel .target-row {
+                width: 100% !important;
+                gap: 5px !important;
+            }
+
+            .room-selection-panel .target-row span {
+                font-size: 1rem !important;
+            }
+
+            .room-selection-panel .target-row button {
+                padding: 6px 0 !important;
+                font-size: 1rem !important;
+            }
+
+            #room-list {
+                padding: 8px !important;
+            }
+
+            .room-item-mini {
+                padding: 6px 12px !important;
+                font-size: 1rem !important;
+                margin-bottom: 5px !important;
+            }
+            .main-board { margin-top: 0 !important; }
+            .hands-area { margin-top: -20px !important; }
+            #game-scale-wrapper { gap: 5px !important; }
+
+            #action-panel {
+                top: 10px !important;
+                right: -170px !important;
+                width: 150px !important;
+                gap: 5px !important;
+            }
+
+            #action-panel button {
+                padding: 8px 0 !important;
+                font-size: 0.95rem !important;
+            }
+
+            .ap-indicator {
+                font-size: 1.4rem !important;
+                margin-bottom: 2px !important;
+            }
+
+            #room-info-bar {
+                padding: 4px 15px !important;
+                font-size: 1.1rem !important;
+                gap: 8px !important;
+                border-radius: 10px !important;
+            }
+            #target-badge {
+                font-size: 0.9rem !important;
+                padding: 1px 10px !important;
+            }
+            #room-info-bar button {
+                font-size: 0.75rem !important;
+                padding: 3px 8px !important;
+            }
         }
         @media (max-width: 800px) {
             .room-selection-panel { transform: scale(0.7); }
             .main-board { transform: scale(0.65); }
             .hands-area { transform: scale(0.75); }
+            #lobby { transform: scale(0.9); }
         }
     </style>
 </head>
 <body ondragover="event.preventDefault()" ondrop="handleGlobalDrop(event)">
 
-    <!-- 아이템 사용 확인 모달 -->
-    <div id="item-confirm-modal">
-        <div id="item-confirm-box">
-            <div class="c-icon" id="item-c-icon"></div>
-            <div class="c-name" id="item-c-name"></div>
-            <div class="c-desc" id="item-c-desc"></div>
-            <div class="item-confirm-btns">
-                <button id="item-use-btn" style="background:var(--success);" onclick="confirmUseItem()">사용하기 ✓</button>
-                <button style="background:var(--accent);" onclick="cancelUseItem()">취소 ✕</button>
+    <!-- 게임 방법 모달 -->
+    <div id="rules-modal" class="modal-overlay">
+        <div class="confirm-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid var(--wood-light); padding-bottom:10px;">
+                <h2 style="margin:0; font-family:'Nanum Pen Script'; font-size:2rem; color:var(--wood-dark);">📜 게임 가이드</h2>
+                <button onclick="closeRules()" style="background:none; border:none; font-size:1.5rem; color:var(--wood-medium); cursor:pointer; padding:0; box-shadow:none;">✕</button>
+            </div>
+            <div class="rules-content">
+                <h4>🎯 승리 조건</h4>
+                <p>중앙에 표시된 <strong>Magic Number</strong>와 내가 만든 수식의 결과값을 일치시키세요!</p>
+                
+                <h4>⚡ 행동 포인트 (AP)</h4>
+                <p>자신의 턴마다 <strong>2 AP</strong>가 주어지며, 다음 행동을 할 수 있습니다:</p>
+                <ul>
+                    <li><strong>카드 뽑기 <span class="rules-badge">1 AP</span></strong>: 숫자나 연산 타일을 덱에서 가져옵니다.</li>
+                    <li><strong>카드 교체 <span class="rules-badge">1 AP</span></strong>: 내 카드와 시장의 공용 타일을 맞바꿉니다.</li>
+                    <li><strong>아이템 사용 <span class="rules-badge">FREE</span></strong>: 행동력 소모 없이 아이템의 특수 능력을 사용합니다.</li>
+                </ul>
+
+                <h4>✨ 아이템 효과</h4>
+                <ul>
+                    <li>🍀 <strong>네잎클로버</strong>: 모든 종류의 카드를 최대치까지 즉시 보충합니다.</li>
+                    <li>⏳ <strong>모래시계</strong>: 이번 턴에 행동 포인트를 <strong>+1</strong> 더 획득합니다.</li>
+                    <li>🌀 <strong>소용돌이</strong>: 시장에 깔린 모든 타일을 새로 바꿉니다.</li>
+                    <li>🎁 <strong>보물상자</strong>: 시장 타일 중 하나를 <strong>무료</strong>로 가져옵니다.</li>
+                    <li>🧤 <strong>도둑장갑</strong>: 상대방의 손패 중 하나를 무작위로 바꿔치기합니다.</li>
+                </ul>
+            </div>
+            <button style="background:var(--wood-dark); width:100%; margin-top:20px; padding:12px;" onclick="closeRules()">이해했습니다!</button>
+        </div>
+    </div>
+
+    <!-- 나가기 확인 모달 -->
+    <div id="leave-confirm-modal" class="modal-overlay">
+        <div class="confirm-box">
+            <div class="c-icon">🚪</div>
+            <div class="c-name">모험을 중단할까요?</div>
+            <div class="c-desc">지금 나가면 진행 중인 게임 데이터가 사라집니다.</div>
+            <div class="confirm-btns">
+                <button style="background:var(--accent);" onclick="confirmLeaveRoom()">나가기</button>
+                <button style="background:var(--wood-medium);" onclick="closeLeaveModal()">계속하기</button>
             </div>
         </div>
     </div>
@@ -480,9 +776,15 @@
     <div class="lobby-wrapper" id="lobby-wrapper">
         <div class="hero-frame"></div>
         <div id="lobby">
-            <div class="lobby-phase active" id="phase-identity" style="width:100%; height:100%;">
-                <p style="font-size:1.6rem; color:var(--wood-dark); font-weight:700; margin-bottom:15px; text-align:center; font-family:'Nanum Pen Script';">Character Select</p>
-                <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; flex:1;">
+            <!-- 모바일 전용 로고 -->
+            <div class="logo-plaque logo-plaque-mobile" style="display:none;">
+                <div class="logo-sub">ARTISANAL MATH GAME</div>
+                <div class="logo">Make <span>Magic Number</span></div>
+            </div>
+
+            <div class="lobby-phase active" id="phase-identity" style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:0;">
+                <p class="char-select-title" style="font-size:2.2rem; color:var(--wood-dark); font-weight:700; margin: 0 0 15px 0; text-align:center; font-family:'Nanum Pen Script';">Character Select</p>
+                <div class="avatar-container">
                     <div class="avatar-box selected" style="background-position:0% 0%" onclick="selectAvatar(0)"></div>
                     <div class="avatar-box" style="background-position:100% 0%" onclick="selectAvatar(1)"></div>
                     <div class="avatar-box" style="background-position:0% 50%" onclick="selectAvatar(2)"></div>
@@ -490,9 +792,12 @@
                     <div class="avatar-box" style="background-position:0% 100%" onclick="selectAvatar(4)"></div>
                     <div class="avatar-box" style="background-position:100% 100%" onclick="selectAvatar(5)"></div>
                 </div>
-                <div style="margin-top:auto; padding-top:15px; width:100%;">
+                <div style="margin-top:auto; padding-top:10px; width:100%;">
                     <input type="text" id="nickname" placeholder="Your Name" style="margin-bottom:12px; width:100%; text-align:center; font-size:1.1rem; padding:10px;">
-                    <button style="background:var(--success); width:100%; padding:15px; font-size:1.2rem; border-radius:12px;" onclick="goToPhase(2)">Ready ➔</button>
+                    <div style="display:flex; gap:10px; width:100%;">
+                        <button style="background:var(--wood-medium); flex:1; padding:12px 0; font-size:1.1rem; border-radius:12px; box-shadow: 0 6px 0 var(--wood-dark); display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="openRules()">📜 게임 방법</button>
+                        <button style="background:var(--success); flex:1; padding:12px 0; font-size:1.1rem; border-radius:12px; box-shadow: 0 6px 0 #1b5e20;" onclick="goToPhase(2)">탐험 시작 ➔</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -509,7 +814,7 @@
                 <div class="action-card" style="justify-content:center; gap:20px;">
                     <h3 style="font-size:2rem; margin:0;">방 만들기 🛖</h3>
                     <input type="text" id="roomCodeInput" placeholder="방 이름" style="width:90%; font-size:1.4rem; padding:15px;">
-                    <div style="display:flex; gap:10px; margin:10px 0; width:90%;">
+                    <div class="target-row" style="display:flex; gap:10px; margin:10px 0; width:90%;">
                         <span style="font-size:1.3rem; color:var(--wood-dark); font-weight:700; align-self:center; white-space:nowrap;">Magic Number:</span>
                         <button id="target-btn-10"  onclick="selectTarget(10)"  style="flex:1; font-size:1.3rem; padding:10px 0; background:var(--warning); color:var(--ink); box-shadow:0 4px 0 var(--wood-dark);">10</button>
                         <button id="target-btn-50"  onclick="selectTarget(50)"  style="flex:1; font-size:1.3rem; padding:10px 0; background:var(--wood-light); box-shadow:0 4px 0 var(--wood-dark);">50</button>
@@ -527,14 +832,14 @@
     </div>
 
     <div id="game-board">
-        <div style="position:absolute; top:15px; font-size:1.6rem; font-weight:700; color:var(--parchment); background:var(--wood-dark); padding:5px 30px; border-radius:15px; z-index:10; display:flex; align-items:center; gap:15px; white-space:nowrap;">
-            🔮 <span id="display-room-name">-</span>
-            <span id="target-badge" style="background:var(--warning); color:var(--ink); padding:2px 14px; border-radius:20px; font-size:1.2rem;">Magic Number: 10</span>
-            <button onclick="leaveRoom()" style="font-size:0.9rem; padding:4px 12px; background:var(--accent); box-shadow:none;">나가기 🚪</button>
-        </div>
-        
         <div id="game-scale-wrapper" style="display:flex; flex-direction:column; align-items:center; gap:15px;">
-        <div class="main-board">
+            <div id="room-info-bar" style="font-size:1.6rem; font-weight:700; color:var(--parchment); background:var(--wood-dark); padding:5px 30px; border-radius:15px; z-index:10; display:flex; align-items:center; gap:15px; white-space:nowrap;">
+                🔮 <span id="display-room-name">-</span>
+                <span id="target-badge" style="background:var(--warning); color:var(--ink); padding:2px 14px; border-radius:20px; font-size:1.2rem;">Magic Number: 10</span>
+                <button onclick="leaveRoom()" style="font-size:0.9rem; padding:4px 12px; background:var(--accent); box-shadow:none;">나가기 🚪</button>
+            </div>
+            
+            <div class="main-board">
             <div class="board-zone" data-title="중앙 시장" style="height:140px; width:680px; margin:0 auto; display:flex; justify-content:space-around; align-items:center;">
                 <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="color:white; font-size:1.1rem; font-weight:bold; opacity:0.9;">숫자 타일</div><div id="shared-numbers" style="display:flex; gap:8px;"></div></div>
                 <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><div style="color:white; font-size:1.1rem; font-weight:bold; opacity:0.9;">연산 타일</div><div id="shared-operators" style="display:flex; gap:8px;"></div></div>
@@ -679,6 +984,9 @@
             }
         }
         
+        function openRules() { SFX.click(); document.getElementById('rules-modal').classList.add('show'); }
+        function closeRules() { SFX.click(); document.getElementById('rules-modal').classList.remove('show'); }
+
         // [추가] 초기 닉네임 요청
         socket.emit('requestRandomNickname');
         socket.on('suggestedNickname', (name) => { document.getElementById('nickname').value = name; });
@@ -740,8 +1048,16 @@
         window.addEventListener('orientationchange', () => setTimeout(autoScale, 200));
 
         function leaveRoom() {
-            if (!confirm('정말 모험을 중단하고 로비로 돌아갈까요?')) return;
             SFX.click();
+            document.getElementById('leave-confirm-modal').classList.add('show');
+        }
+        function closeLeaveModal() {
+            SFX.click();
+            document.getElementById('leave-confirm-modal').classList.remove('show');
+        }
+        function confirmLeaveRoom() {
+            SFX.click();
+            document.getElementById('leave-confirm-modal').classList.remove('show');
             socket.emit('leaveRoom', currentRoom);
             document.getElementById('room-selection-wrapper').style.display = 'flex';
             document.getElementById('game-board').style.display = 'none';
@@ -850,14 +1166,26 @@
                 out.forEach(tk => {
                     if (tk.t === 'N') stk.push(tk.v);
                     else {
-                        if (tk.v === '\u221a') { const a=stk.pop(); stk.push(Math.sqrt(a)); }
-                        else if (tk.v === '\u00b2') { const a=stk.pop(); stk.push(a*a); }
-                        else if (tk.v === '!') { const a=stk.pop(); stk.push(a>=0&&a<=7?fact(a):NaN); }
-                        else { const b=stk.pop(),a=stk.pop(); 
-                            if(tk.v==='+') stk.push(a+b);
-                            else if(tk.v==='-') stk.push(a-b);
-                            else if(tk.v==='*') stk.push(a*b);
-                            else if(tk.v==='/') stk.push(b===0?NaN:a/b);
+                        if (tk.v === '\u221a') { 
+                            const a = stk.pop(); 
+                            if (![0, 1, 4, 9].includes(a)) stk.push(NaN); // 서버 파서와 동기화
+                            else stk.push(Math.sqrt(a)); 
+                        }
+                        else if (tk.v === '\u00b2') { 
+                            const a = stk.pop(); 
+                            if (a < 0 || a > 9) stk.push(NaN); // 1~9 범위 한정
+                            else stk.push(a * a); 
+                        }
+                        else if (tk.v === '!') { 
+                            const a = stk.pop(); 
+                            stk.push(a >= 0 && a <= 7 ? fact(a) : NaN); 
+                        }
+                        else { 
+                            const b = stk.pop(), a = stk.pop(); 
+                            if (tk.v === '+') stk.push(a + b);
+                            else if (tk.v === '-') stk.push(a - b);
+                            else if (tk.v === '*') stk.push(a * b);
+                            else if (tk.v === '/') stk.push(b === 0 ? NaN : a / b);
                         }
                     }
                 });
@@ -1051,6 +1379,16 @@
             notify(`${user}님이 ${item} 아이템을 사용했습니다!`);
         });
 
+        socket.on('gameEnded', (msg) => {
+            showToast(msg);
+            setTimeout(() => {
+                document.getElementById('room-selection-wrapper').style.display = 'flex';
+                document.getElementById('game-board').style.display = 'none';
+                currentRoom = null;
+                refreshRooms();
+            }, 2500);
+        });
+
         function notify(msg) {
             const t = document.createElement('div');
             t.className = 'toast';
@@ -1236,5 +1574,6 @@
             document.getElementById('swap-btn').className = (selHandIdx !== -1 && selSharedIdx !== -1) ? 'active' : 'disabled';
         }
     </script>
+    <div class="help-fab" onclick="openRules()" title="게임 방법">?</div>
 </body>
 </html>
