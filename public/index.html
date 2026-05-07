@@ -522,26 +522,46 @@
         @media (max-width: 1000px) {
             .hero-frame { 
                 display: block !important; 
-                width: 380px !important; 
-                height: 380px !important;
-                border-width: 8px !important;
+                width: 350px !important; 
+                height: 350px !important;
+                border-width: 6px !important;
+                flex-shrink: 0 !important;
             }
             .lobby-wrapper { 
-                gap: 20px !important; padding: 0 10px !important; 
+                gap: 15px !important; 
+                padding: 10px !important; 
                 background-image: url('math_parchment_texture.png');
                 background-size: 600px;
                 justify-content: center !important;
+                align-items: center !important;
                 height: 100vh !important;
+                flex-wrap: nowrap !important; /* 강제 가로 배치 */
+                overflow: hidden !important;
             }
             
             #lobby {
-                width: 380px !important; height: 380px !important; /* 일러스트와 높이 맞춤 */
-                padding: 25px 20px 15px !important;
-                border-width: 8px !important;
-                box-shadow: 0 0 40px rgba(0,0,0,0.5);
+                width: 350px !important; height: 350px !important; 
+                padding: 20px 15px 10px !important;
+                border-width: 6px !important;
+                box-shadow: 0 0 30px rgba(0,0,0,0.5);
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                flex-shrink: 0 !important;
+            }
+
+            /* 좁은 세로 화면(노치 등) 대응: 전체 스케일 축소 */
+            @media (max-height: 400px) {
+                .lobby-wrapper {
+                    transform: scale(0.9);
+                    transform-origin: center;
+                }
+            }
+
+            @media (max-height: 350px) {
+                .lobby-wrapper {
+                    transform: scale(0.8);
+                }
             }
 
             /* 모바일 로고 제거 (왼쪽 일러스트에 이미 포함됨) */
@@ -584,47 +604,47 @@
             }
 
             #lobby .char-select-title {
-                font-size: 1.8rem !important; /* 높이에 맞춰 살짝 축소 */
+                font-size: 1.6rem !important; 
                 margin: 0 0 5px 0 !important;
                 width: 100% !important;
                 text-align: center !important;
-                line-height: 1.1 !important;
+                line-height: 1 !important;
             }
 
             .avatar-container {
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 8px !important;
+                gap: 6px !important;
                 margin-bottom: 5px !important;
             }
 
             #lobby .avatar-box {
-                width: 62px !important; height: 62px !important; /* 380px 폭에 맞춰 최적화 */
+                width: 58px !important; height: 58px !important; 
                 margin-bottom: 2px !important;
                 border-width: 2px !important;
             }
 
             /* 선택 시 솟아오름 축소 */
             #lobby .avatar-box.selected {
-                transform: scale(1.1) translateY(-2px) !important;
-                box-shadow: 0 0 20px var(--warning), 0 4px 10px rgba(0,0,0,0.4) !important;
+                transform: scale(1.08) translateY(-2px) !important;
+                box-shadow: 0 0 15px var(--warning), 0 3px 8px rgba(0,0,0,0.4) !important;
             }
 
-            /* 하단 입력란/버튼 영역 가로 전체 차지 및 하단으로 밀기 */
+            /* 하단 입력란/버튼 영역 */
             #phase-identity > div:last-child {
                 width: 100% !important;
-                margin-top: 5px !important;
+                margin-top: 3px !important;
                 padding-top: 0 !important;
             }
 
             #lobby input#nickname {
-                padding: 5px !important;
-                font-size: 0.95rem !important;
-                margin-bottom: 5px !important;
+                padding: 4px !important;
+                font-size: 0.9rem !important;
+                margin-bottom: 4px !important;
             }
 
             #lobby button {
-                padding: 8px 0 !important;
-                font-size: 1rem !important;
+                padding: 6px 0 !important;
+                font-size: 0.9rem !important;
             }
 
             .room-selection-panel { 
