@@ -253,11 +253,21 @@ io.on('connection', (socket) => {
             const { numDeck, opDeck } = createDecks();
             room.numDeck = numDeck;
             room.opDeck = opDeck;
-            room.sharedNumbers = [drawFromDeck(room, 'number'), drawFromDeck(room, 'number'), drawFromDeck(room, 'number')];
-            room.sharedOperators = [drawFromDeck(room, 'operator'), drawFromDeck(room, 'operator')];
+            const target = room.targetNumber || 10;
+            room.sharedNumbers = Array(5).fill(0).map(() => drawFromDeck(room, 'number'));
+            room.sharedOperators = Array(3).fill(0).map(() => drawFromDeck(room, 'operator'));
+            
             room.players.forEach(p => {
-                p.handNumbers = [drawFromDeck(room, 'number'), drawFromDeck(room, 'number')];
-                p.handOperators = [drawFromDeck(room, 'operator')];
+                const initialNums = target >= 50 ? 4 : 2;
+                const initialOps = target >= 50 ? 2 : 1;
+                
+                // 직접 배열을 채워주어 undefined 방지
+                p.handNumbers = [];
+                for(let i=0; i<initialNums; i++) p.handNumbers.push(drawFromDeck(room, 'number'));
+                
+                p.handOperators = [];
+                for(let i=0; i<initialOps; i++) p.handOperators.push(drawFromDeck(room, 'operator'));
+                
                 p.handItems = []; // 아이템 가방 초기화
             });
             room.status = 'playing';
@@ -270,7 +280,16 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('drawCard', (roomCode) => {
+    socket.on('drawCard', (data) => {
+        // 하위 호환성 및 객체/문자열 파라미터 모두 대응
+        let roomCode, type;
+        if (typeof data === 'string') {
+            roomCode = data;
+        } else {
+            roomCode = data.roomCode;
+            type = data.type;
+        }
+
         const room = rooms[roomCode];
         if (!room || room.status !== 'playing' || room.currentAP <= 0) return;
         const player = room.players[room.turnIndex];
@@ -307,7 +326,9 @@ io.on('connection', (socket) => {
             if (canDrawOp && room.opDeck.length > 0) drawableTypes.push('operator');
 
             if (drawableTypes.length > 0) {
-                const typeToDraw = drawableTypes[Math.floor(Math.random() * drawableTypes.length)];
+                // 특정 타입을 요청했으면 해당 타입으로, 아니면 랜덤 (구 버전 호환용)
+                const typeToDraw = (type && drawableTypes.includes(type)) ? type : drawableTypes[Math.floor(Math.random() * drawableTypes.length)];
+                
                 if (typeToDraw === 'number') {
                     player.handNumbers.push(drawFromDeck(room, 'number'));
                 } else {
@@ -415,6 +436,9 @@ io.on('connection', (socket) => {
             }
         } else if (item === '🧤') { // 도둑장갑: 무작위 상대방 카드 교체 (항상 사용 가능)
             const opponents = room.players.filter(p => p.id !== socket.id);
+            if (opponents.length === 0) {
+                return socket.emit('error', '대결 중인 상대방이 없어 장갑을 사용할 수 없습니다!');
+            }
             const target = targetId ? room.players.find(p => p.id === targetId) : opponents[Math.floor(Math.random() * opponents.length)];
             if (target) {
                 if (target.handNumbers.length > 0) target.handNumbers[Math.floor(Math.random() * target.handNumbers.length)] = drawFromDeck(room, 'number');

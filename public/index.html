@@ -787,6 +787,19 @@
         </div>
     </div>
 
+    <!-- 아이템 사용 확인 모달 -->
+    <div id="item-confirm-modal" class="modal-overlay">
+        <div id="item-confirm-box">
+            <div id="item-c-icon" class="c-icon">🔮</div>
+            <div id="item-c-name" class="c-name">아이템 이름</div>
+            <div id="item-c-desc" class="c-desc">아이템 설명이 들어갑니다.</div>
+            <div class="item-confirm-btns">
+                <button style="background:var(--success);" onclick="confirmUseItem()">사용하기</button>
+                <button style="background:var(--wood-medium);" onclick="cancelUseItem()">취소</button>
+            </div>
+        </div>
+    </div>
+
     <div id="orientation-overlay">
         <div class="rotate-icon">🔄📱</div>
         <h2>기기를 가로로 돌려주세요!</h2>
@@ -873,17 +886,41 @@
                 <div id="formula-container" style="display:flex; gap:5px;"></div>
                 <div id="formula-result" style="margin-top:10px; background:var(--warning); color:var(--ink); padding:3px 20px; border-radius:15px; font-weight:700; font-size:1.2rem;">수식을 조립해보세요!</div>
             </div>
+
+            <!-- 시각적인 카드 덱 (뽑기 구역) -->
+            <div id="decks-area" style="position:absolute; left:-180px; top:50px; display:flex; flex-direction:column; gap:20px; align-items:center;">
+                <div class="deck-pile" onclick="drawCard('number')" title="숫자 카드 뽑기" style="cursor:pointer; position:relative; transition:0.2s;">
+                    <div class="card num" style="transform:rotate(-5deg); position:absolute; top:0; left:0; pointer-events:none;"></div>
+                    <div class="card num" style="transform:rotate(2deg); position:absolute; top:4px; left:5px; pointer-events:none;"></div>
+                    <div class="card num" style="transform:rotate(-2deg); position:relative; z-index:2; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+                        <div class="symbol" style="font-size:2rem; opacity:0.3;">#</div>
+                        <div style="position:absolute; bottom:5px; font-size:0.8rem; font-weight:bold; color:var(--wood-medium);">NUMBER</div>
+                    </div>
+                </div>
+                <div class="deck-pile" onclick="drawCard('operator')" title="연산 카드 뽑기" style="cursor:pointer; position:relative; transition:0.2s;">
+                    <div class="card op" style="transform:rotate(4deg); position:absolute; top:0; left:0; pointer-events:none;"></div>
+                    <div class="card op" style="transform:rotate(-3deg); position:absolute; top:4px; left:5px; pointer-events:none;"></div>
+                    <div class="card op" style="transform:rotate(1deg); position:relative; z-index:2; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+                        <div class="symbol" style="font-size:2rem; opacity:0.3;">±</div>
+                        <div style="position:absolute; bottom:5px; font-size:0.8rem; font-weight:bold; color:var(--accent);">OPERATOR</div>
+                    </div>
+                </div>
+                <div style="color:white; font-size:1.1rem; font-weight:bold; text-shadow:0 2px 4px black;">타일 뽑기</div>
+            </div>
             <div id="players-layer"></div>
             
             <div id="action-panel" style="position:absolute; right:-210px; top:-15px; display:flex; flex-direction:column; gap:10px; width:180px; z-index:250;">
                 <div id="ap-display" class="ap-indicator">⚡⚡</div>
-                <button id="draw-btn" class="disabled" onclick="drawCard()">뽑기 🎲</button>
+                <div style="font-size:0.9rem; color:rgba(255,255,255,0.7); text-align:center; margin-bottom:5px;">왼쪽 덱을 눌러 뽑기</div>
+                
+                <!-- 시작 버튼을 패널 상단으로 이동 및 강조 -->
+                <button id="start-btn" style="display:none; background:var(--warning); color:var(--ink); font-weight:bold; border:3px solid var(--wood-dark); margin-bottom:10px; animation: pulse 1.5s infinite;" onclick="startGame()">탐험 시작! 🏁</button>
+
                 <div style="display:flex; gap:5px;">
                     <button id="swap-btn" class="disabled" style="flex:1;" onclick="executeSwap()">교체 🔄</button>
                     <button id="cancel-swap-btn" style="background:#e57373; width:50px; padding:12px 0; display:none;" onclick="resetSelection()">❌</button>
                 </div>
                 <button id="submit-btn" style="background:var(--success); font-size:1.05rem; padding:12px 0;" onclick="submitFormula()">Make Magic Number!! 🏆</button>
-                <button id="start-btn" style="display:none; background:var(--warning); color:var(--ink);" onclick="startGame()">시작 🏁</button>
                 <div id="turn-status" style="text-align:center; color:white; font-size:0.9rem;">기다리는 중...</div>
             </div>
         </div>
@@ -933,6 +970,7 @@
         let selectedTarget = 10; // 목표 숫자 (10/50/100)
         let selType = null, selHandIdx = -1, selSharedIdx = -1;
         let formulaCards = []; 
+        let currentRoomTarget = 10;
         // 2x3 스프라이트 시트 위치 (6인 아바타)
         const avatarPositions = ['0% 0%', '100% 0%', '0% 50%', '100% 50%', '0% 100%', '100% 100%'];
 
@@ -1094,7 +1132,11 @@
             refreshRooms();
         }
         function startGame() { socket.emit('startGame', currentRoom); }
-        function drawCard() { socket.emit('drawCard', currentRoom); SFX.draw(); resetSelection(); formulaCards = []; renderFormula(); }
+        function drawCard(type) { 
+            // type이 없으면 랜덤 (기존 코드 호환)
+            socket.emit('drawCard', { roomCode: currentRoom, type }); 
+            SFX.draw(); resetSelection(); formulaCards = []; renderFormula(); 
+        }
         function executeSwap() { if (selHandIdx !== -1 && selSharedIdx !== -1) { socket.emit('swapCard', { roomCode: currentRoom, type: selType, handIdx: selHandIdx, sharedIdx: selSharedIdx }); SFX.swap(); resetSelection(); formulaCards = []; renderFormula(); } }
         function resetSelection() { selType = null; selHandIdx = -1; selSharedIdx = -1; updateSelectionUI(); }
 
@@ -1126,7 +1168,20 @@
             if (formulaCards.length === 0) { resultDisplay.innerText = '수식을 조립해보세요!'; }
             else {
                 const expr = formulaCards.map(c => c.val).join(" ");
-                resultDisplay.innerText = `${expr} = ${calculate(expr)}`;
+                const result = calculate(expr);
+                resultDisplay.innerText = `${expr} = ${result}`;
+
+                // [추가] 자동 제출 (Auto-submit)
+                if (result == currentRoomTarget) {
+                    // 시각적으로 보여준 후 약간의 지연을 두고 제출
+                    setTimeout(() => {
+                        // 그 사이 수식이 바뀌지 않았는지 재확인
+                        const currentExpr = formulaCards.map(c => c.val).join(" ");
+                        if (calculate(currentExpr) == currentRoomTarget) {
+                            submitFormula();
+                        }
+                    }, 800);
+                }
             }
             formulaCards.forEach((c, idx) => {
                 const fIdx = idx; // closure를 위한 const 바인딩
@@ -1278,20 +1333,46 @@
             const apIcon = isMyTurn ? "⚡".repeat(room.currentAP || 0) : "⌛";
             document.getElementById('ap-display').innerText = apIcon;
             document.getElementById('turn-status').innerText = isMyTurn ? `내 차례 (${room.currentAP} 행동 남음)` : "친구의 차례를 기다려요...";
-            document.getElementById('draw-btn').className = (isMyTurn && room.currentAP > 0) ? 'active' : 'disabled';
+            
+            // [수정] draw-btn 삭제됨 -> 덱 구역 시각적 상태 업데이트
+            const decks = document.getElementById('decks-area');
+            if (decks) decks.style.opacity = (isMyTurn && room.currentAP > 0) ? '1' : '0.5';
 
             // 목표 숫자 UI 업데이트
             const target = room.targetNumber || 10;
+            currentRoomTarget = target;
             const badge = document.getElementById('target-badge');
             if (badge) badge.innerText = `Magic Number: ${target}`;
             const submitBtn = document.getElementById('submit-btn');
             if (submitBtn) submitBtn.innerText = `Make Magic Number!! 🏆`;
             
             const startBtn = document.getElementById('start-btn');
-            if (me.isHost && (room.status === 'waiting' || room.status === undefined)) {
-                startBtn.style.display = 'block';
+            const turnStatus = document.getElementById('turn-status');
+
+            // [추가] 내 턴이 막 시작되었을 때 (이전 턴 데이터가 남아있을 경우) 제작소 초기화
+            // currentTurnId 등을 저장해서 이전과 다를 때만 초기화하는 것이 더 정확함
+            if (window.lastTurnIdx !== undefined && window.lastTurnIdx !== room.turnIndex) {
+                if (isMyTurn) {
+                    formulaCards = [];
+                    renderFormula();
+                }
+            }
+            window.lastTurnIdx = room.turnIndex;
+
+            if (room.status === 'waiting' || !room.status) {
+                if (me.isHost) {
+                    if (startBtn) startBtn.style.display = 'block';
+                    if (turnStatus) turnStatus.innerText = "모험가들이 모이기를 기다려요...";
+                } else {
+                    if (startBtn) startBtn.style.display = 'none';
+                    if (turnStatus) turnStatus.innerText = "방장이 게임을 시작하기를 기다려요...";
+                }
+                // 대기 중일 때는 제출/뽑기 등 숨김 처리 (선택 사항)
+                if (submitBtn) submitBtn.style.display = 'none';
             } else {
-                startBtn.style.display = 'none';
+                if (startBtn) startBtn.style.display = 'none';
+                if (submitBtn) submitBtn.style.display = 'block';
+                if (turnStatus) turnStatus.innerText = isMyTurn ? `내 차례 (${room.currentAP} 행동 남음)` : "친구의 차례를 기다려요...";
             }
             updateSelectionUI();
         }
@@ -1305,7 +1386,7 @@
         };
         const ITEM_DESCS = {
             '🍀': '숫자 7장 + 연산 4장을 즉시 보충합니다.',
-            '⏳': '행동 포인트를 +2 획득합니다.',
+            '⏳': '행동 포인트를 +1 획득합니다.',
             '🎁': '시장에서 카드 1장을 무료로 가져옵니다.',
             '🌀': '시장 카드를 전부 새로 교체합니다.',
             '🧤': '상대방의 카드를 무작위로 교체합니다.'
@@ -1315,6 +1396,12 @@
         let _pendingItemEmoji = null;
 
         function openItemConfirm(idx, item) {
+            // [추가] 턴 확인 로직
+            const turnStatus = document.getElementById('turn-status').innerText;
+            if (turnStatus.includes('친구의 차례')) {
+                return showToast('⚠️ 자신의 차례에만 아이템을 사용할 수 있습니다.');
+            }
+
             _pendingItemIdx = idx;
             _pendingItemEmoji = item;
             document.getElementById('item-c-icon').innerText = item;
@@ -1585,13 +1672,26 @@
 
         function updateSelectionUI() {
             const hasSelection = (selHandIdx !== -1 || selSharedIdx !== -1);
-            document.getElementById('cancel-swap-btn').style.display = hasSelection ? 'block' : 'none';
+            const cancelBtn = document.getElementById('cancel-swap-btn');
+            if (cancelBtn) cancelBtn.style.display = hasSelection ? 'block' : 'none';
             
             document.querySelectorAll('.card').forEach(c => {
-                const isMatch = (c.dataset.type === selType) && ((c.dataset.shared === "true" && c.dataset.idx == selSharedIdx) || (c.dataset.shared === "false" && c.dataset.idx == selHandIdx));
-                c.classList.toggle('selected', isMatch);
+                // 1. 선택 상태 업데이트
+                const isSelected = (c.dataset.type === selType) && 
+                                   ((c.dataset.shared === "true" && c.dataset.idx == selSharedIdx) || 
+                                    (c.dataset.shared === "false" && c.dataset.idx == selHandIdx));
+                c.classList.toggle('selected', isSelected);
+
+                // 2. [추가] 수식 제작소 사용 상태 실시간 동기화 (내 손패만)
+                if (c.dataset.shared === "false") {
+                    const type = c.dataset.type;
+                    const idx = parseInt(c.dataset.idx);
+                    const isUsed = formulaCards.some(fc => fc.type === type && fc.originalIdx === idx);
+                    c.classList.toggle('in-formula', isUsed);
+                }
             });
-            document.getElementById('swap-btn').className = (selHandIdx !== -1 && selSharedIdx !== -1) ? 'active' : 'disabled';
+            const swapBtn = document.getElementById('swap-btn');
+            if (swapBtn) swapBtn.className = (selHandIdx !== -1 && selSharedIdx !== -1) ? 'active' : 'disabled';
         }
     </script>
     <div class="help-fab" onclick="openRules()" title="게임 방법">?</div>

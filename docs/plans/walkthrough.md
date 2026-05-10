@@ -15,7 +15,28 @@ The 'Make Magic Number' online board game has been completely overhauled to feat
 - **Logic Security**: Verified that `startGame` and `submitFormula` socket events are properly gated by host and turn checks.
 - **State Integrity**: Ensured that leaving a room mid-action completely resets local item and card selection states.
 
-## 4. How to Run
+## 5. Recent Bug Fixes (2026-05-10)
+- **Initial Card Distribution Fixed**: Resolved a critical "No Initial Cards" bug where players received an empty hand at game start. Replaced unreliable array mapping with a robust loop-based allocation in `server.js`.
+- **Start Button Visibility**: Fixed a Javascript error in `updateUI` (caused by referencing a deleted button ID) that prevented the "Start Game" button from appearing for the host.
+- **Formula Workshop Sync**: Fixed a UI bug where cards remained disabled in the hand even after being cleared from the workshop. The hand cards now correctly synchronize their "in-formula" status whenever the workshop is updated.
+- **New Turn Auto-Reset**: Added logic to automatically clear the formula workshop when a new turn begins, preventing state leakage from previous turns.
+- **Item Usage Fixed**: Resolved a critical issue where the item confirmation modal was missing from the HTML, causing items (like Whirlwind) to be unresponsive.
+- **Turn-based Validation**: Added client-side checks to ensure items can only be used during the player's active turn, providing clear feedback via Toast notifications.
+- **Consistency Audit**: 
+    - Synced "Hourglass" (⏳) description with server logic (+1 AP).
+    - Added safety checks for "Glove" (🧤) to prevent usage when no opponents are present.
+- **Stability**: Verified all 10/10 math parser test cases pass after the UI updates.
+
+## 6. Strategic Rule Changes & Fast-paced Gameplay (2026-05-10)
+- **Early Game Buff**: 
+    - When the Magic Number is 50 or 100, players start with **4 Number cards and 2 Operator cards** (instead of 2/1).
+    - The central market now offers **5 Numbers and 3 Operators** for more variety from the start.
+- **Choice-based Drawing (Separated Decks)**:
+    - Replaced the generic draw button with **two interactive card decks** on the board. Players can now strategically choose to draw either a Number or an Operator.
+- **Auto-Win (Magic Match)**:
+    - Implemented a seamless victory system. As soon as the assembled formula matches the target number, the game automatically validates and ends, eliminating the need for a manual submit button. (Manual submit button remains as a backup/visual guide).
+
+## 7. How to Run
 1. Install dependencies: `npm install`
 2. Start the server: `npm start`
 3. Open `http://localhost:3000` in multiple tabs to play.
