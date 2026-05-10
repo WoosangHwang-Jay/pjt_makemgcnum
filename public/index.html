@@ -478,6 +478,17 @@
         @media (orientation: portrait) { #orientation-overlay { display: flex; } }
         .rotate-icon { font-size: 5rem; animation: rotateDevice 2s infinite; }
         @keyframes rotateDevice { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } }
+        @keyframes pulse { 
+            0% { transform: scale(1); box-shadow: 0 4px 0 var(--wood-dark); }
+            50% { transform: scale(1.05); box-shadow: 0 8px 15px rgba(255,160,0,0.4); }
+            100% { transform: scale(1); box-shadow: 0 4px 0 var(--wood-dark); }
+        }
+        @keyframes gold-pulse {
+            0% { background: var(--success); transform: scale(1); box-shadow: 0 0 0 rgba(255, 215, 0, 0); }
+            50% { background: #ffd700; transform: scale(1.1); box-shadow: 0 0 30px #ffd700, 0 0 50px #ff8c00; color: #000; }
+            100% { background: var(--success); transform: scale(1); box-shadow: 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        .victory-active { animation: gold-pulse 0.8s infinite !important; cursor: pointer !important; }
         .refresh-btn {
             position: absolute; top: 15px; right: 15px;
             width: 36px; height: 36px; background: var(--wood-medium);
@@ -1171,16 +1182,33 @@
                 const result = calculate(expr);
                 resultDisplay.innerText = `${expr} = ${result}`;
 
-                // [추가] 자동 제출 (Auto-submit)
+                // [개선] 절충안 적용: 황금빛 효과 + 사용자 클릭 대기 후 자동 제출
                 if (result == currentRoomTarget) {
-                    // 시각적으로 보여준 후 약간의 지연을 두고 제출
-                    setTimeout(() => {
-                        // 그 사이 수식이 바뀌지 않았는지 재확인
+                    const btn = document.getElementById('submit-btn');
+                    if (btn) {
+                        btn.innerText = "Make Magic Number!! 🏆";
+                        btn.classList.add('victory-active');
+                    }
+
+                    // 기존 예약된 자동 제출이 있다면 취소 (수식이 바뀌었을 수 있으므로)
+                    if (window.autoSubmitTimer) clearTimeout(window.autoSubmitTimer);
+                    
+                    window.autoSubmitTimer = setTimeout(() => {
                         const currentExpr = formulaCards.map(c => c.val).join(" ");
                         if (calculate(currentExpr) == currentRoomTarget) {
                             submitFormula();
                         }
-                    }, 800);
+                    }, 2000); // 2초 대기
+                } else {
+                    const btn = document.getElementById('submit-btn');
+                    if (btn) {
+                        btn.innerText = "Make Magic Number!! 🏆";
+                        btn.classList.remove('victory-active');
+                    }
+                    if (window.autoSubmitTimer) {
+                        clearTimeout(window.autoSubmitTimer);
+                        window.autoSubmitTimer = null;
+                    }
                 }
             }
             formulaCards.forEach((c, idx) => {
@@ -1271,6 +1299,13 @@
 
         function submitFormula() {
             if (formulaCards.length === 0) return showToast('⚠️ 수식을 먼저 만들어주세요!');
+            
+            // 수동 클릭 시 자동 제출 타이머 해제
+            if (window.autoSubmitTimer) {
+                clearTimeout(window.autoSubmitTimer);
+                window.autoSubmitTimer = null;
+            }
+
             const formulaStr = formulaCards.map(c => c.val).join("");
             socket.emit('submitFormula', { roomCode: currentRoom, formula: formulaStr });
         }
